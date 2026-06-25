@@ -1,0 +1,47 @@
+{
+  "name": "jobiq",
+  "version": "1.0.0",
+  "description": "CareerDock - Job Intelligence Platform",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "server": "nodemon server/index.js",
+    "client": "cd client && npm start",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "install-all": "npm install && cd client && npm install",
+    "scrape": "node server/runAggregator.js",
+    "test": "jest",
+    "setup-search": "node server/setupAtlasSearch.js",
+    "setup-indexes": "node server/setupIndexes.js",
+    "worker:dedup": "node server/workers/dedupWorker.js",
+    "worker:quality": "node server/workers/qualityWorker.js",
+    "worker:recommendations": "node server/workers/recommendationWorker.js",
+    "pipeline:run": "node server/pipeline/runPipeline.js",
+    "pipeline:yc": "node server/pipeline/runPipeline.js --source ycombinator",
+    "pipeline:peerlist": "node server/pipeline/runPipeline.js --source peerlist",
+    "pipeline:refresh-companies": "node server/pipeline/runPipeline.js --source ycombinator --refresh-only",
+    "pipeline:setup-indexes": "node server/pipeline/setupIndexes.js"
+  },
+  "dependencies": {
+    "@xenova/transformers": "^2.17.2",
+    "axios": "^1.6.2",
+    "bcryptjs": "^2.4.3",
+    "cheerio": "^1.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^8.5.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.0.3",
+    "natural": "^8.1.1",
+    "node-cron": "^3.0.3",
+    "nodemailer": "^9.0.1",
+    "puppeteer": "^21.6.1",
+    "redis": "^6.0.0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "jest": "^30.4.2",
+    "nodemon": "^3.0.2"
+  }
+}
