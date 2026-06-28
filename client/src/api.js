@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const axiosInstance = axios.create({ baseURL: '/api' });
+const axiosInstance = axios.create({ baseURL:  process.env.REACT_APP_API_URL || 'https://careerdock1-production.up.railway.app/api', });
 
 axiosInstance.interceptors.request.use(config => {
   const token = localStorage.getItem('token');
