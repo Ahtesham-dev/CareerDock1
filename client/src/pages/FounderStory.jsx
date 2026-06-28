@@ -168,8 +168,23 @@ export default function FounderStory() {
           </div>
         </FadeSection>
 
+        <FadeSection delay={0.55}>
+          <div className="flex items-center justify-center gap-4 pb-6">
+            <a href="https://github.com/Ahtesham-dev" target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-white/40 hover:text-white/80 text-sm font-medium px-4 py-2.5 rounded-xl border border-white/[0.06] hover:border-white/[0.15] transition-all group">
+              <i className="ti ti-brand-github text-base" />
+              <span>GitHub</span>
+            </a>
+            <a href="https://www.linkedin.com/in/ahteshamo6-aslam-/" target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-white/40 hover:text-white/80 text-sm font-medium px-4 py-2.5 rounded-xl border border-white/[0.06] hover:border-white/[0.15] transition-all group">
+              <i className="ti ti-brand-linkedin text-base" />
+              <span>LinkedIn</span>
+            </a>
+          </div>
+        </FadeSection>
+
         <FadeSection delay={0.6}>
-          <div className="border-t border-white/[0.04] pt-8 mt-8">
+          <div className="border-t border-white/[0.04] pt-8 mt-2">
             <div className="flex items-center justify-center gap-2 text-[10px] text-white/15 font-mono tracking-wider">
               <Logo size={12} />
               <span>&copy; 2026 CareerDock &mdash; Designed &amp; Developed by <GradientSpan>Ahtesham</GradientSpan></span>
