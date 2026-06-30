@@ -22,11 +22,11 @@ const sourceGroups = [
   { label: 'Professional', sources: ['LinkedIn', 'Naukri'] },
   { label: 'Aggregator', sources: ['JSearch'] },
   { label: 'General', sources: ['Internshala', 'Career Pages'] },
-  { label: 'Startup', sources: ['Wellfound', 'YCombinator'] },
+  { label: 'Startup', sources: ['Wellfound', 'YCombinator', 'Instahyre', 'Cutshort', 'Hirect'] },
   { label: 'Community', sources: ['GitHub', 'HackerNews', 'Dev.to', 'Peerlist'] }
 ];
 
-const sourceColors = { LinkedIn: 'blue', Naukri: 'red', JSearch: 'indigo', Internshala: 'green', 'Career Pages': 'purple', Wellfound: 'amber', GitHub: 'gray', HackerNews: 'amber', 'Dev.to': 'gray', YCombinator: 'orange', Peerlist: 'teal' };
+const sourceColors = { LinkedIn: 'blue', Naukri: 'red', JSearch: 'indigo', Internshala: 'green', 'Career Pages': 'purple', Wellfound: 'amber', GitHub: 'gray', HackerNews: 'amber', 'Dev.to': 'gray', YCombinator: 'orange', Peerlist: 'teal', Instahyre: 'cyan', Cutshort: 'pink', Hirect: 'lime' };
 
 export default function Sidebar({ activeSources, toggleSource, collapsed, onToggle }) {
   const [sourceCounts, setSourceCounts] = useState({});

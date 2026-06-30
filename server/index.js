@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const rateLimit = require('express-rate-limit');
 const { requestLogger, errorLogger } = require('./middleware/logger');
 
 const app = express();
@@ -39,9 +40,18 @@ app.use('/api/ats', require('./routes/ats'));
 app.use('/api/intelligence', require('./routes/intelligence'));
 app.use('/api/engine', require('./routes/engine'));
 
+// Rate limiting for pipeline API
+const pipelineLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests, please try again later' }
+});
+
 // Pipeline API routes
-app.use('/api/pipeline', require('./pipeline/routes/pipeline'));
-app.use('/api/pipeline/jobs', require('./pipeline/routes/jobs'));
+app.use('/api/pipeline', pipelineLimiter, require('./pipeline/routes/pipeline'));
+app.use('/api/pipeline/jobs', pipelineLimiter, require('./pipeline/routes/jobs'));
 
 app.use(errorLogger);
 

@@ -25,8 +25,6 @@ class YCombinatorAdapter extends SourceAdapter {
     }
 
     const query = { active: true, careersUrl: { $ne: '' } };
-    if (maxCompanies) query.$limit = maxCompanies;
-
     const companies = await CompanyRegistry.find(query).limit(maxCompanies || 500).lean();
     this.logger.info(`Fetching jobs for ${companies.length} YC companies`);
 

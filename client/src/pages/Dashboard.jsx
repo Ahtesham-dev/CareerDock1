@@ -114,6 +114,9 @@ export default function Dashboard({ activeSources = [] }) {
     catch { showToast('Failed to save', 'error'); }
   };
   const handleApply = async (jobId) => {
+    const job = jobs.find(j => j._id === jobId);
+    const url = job?.applyUrl || job?.externalUrl;
+    if (url) window.open(url, '_blank', 'noopener,noreferrer');
     try { await applicationsAPI.autoApply(jobId); setAppliedIds(prev => new Set(prev).add(jobId)); showToast('Application recorded!', 'success'); }
     catch (err) { showToast(err.response?.status === 409 ? 'Already applied' : 'Failed to apply', 'warning'); }
   };

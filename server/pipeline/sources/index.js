@@ -1,9 +1,15 @@
 const YCombinatorAdapter = require('./ycombinator');
 const PeerlistAdapter = require('./peerlist');
+const CutshortAdapter = require('./cutshort');
+const InstahyreAdapter = require('./instahyre');
+const HirectAdapter = require('./hirect');
 
 const SOURCES = {
   ycombinator: new YCombinatorAdapter(),
-  peerlist: new PeerlistAdapter()
+  peerlist: new PeerlistAdapter(),
+  cutshort: new CutshortAdapter(),
+  instahyre: new InstahyreAdapter(),
+  hirect: new HirectAdapter()
 };
 
 function getSource(name) {
@@ -17,4 +23,4 @@ function getAllSources() {
   }));
 }
 
-module.exports = { YCombinatorAdapter, PeerlistAdapter, SOURCES, getSource, getAllSources };
+module.exports = { YCombinatorAdapter, PeerlistAdapter, CutshortAdapter, InstahyreAdapter, HirectAdapter, SOURCES, getSource, getAllSources };

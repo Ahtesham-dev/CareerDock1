@@ -14,8 +14,9 @@ class HackerNewsScraper extends BaseScraper {
 
   async fetchJobs() {
     try {
-      const { data } = await axios.get('https://hn.algolia.com/api/v1/search', {
-        params: { query: 'Who is hiring', tags: 'story', hitsPerPage: 5 },
+      const ninetyDaysAgo = Math.floor((Date.now() - 90 * 24 * 60 * 60 * 1000) / 1000);
+      const { data } = await axios.get('https://hn.algolia.com/api/v1/search_by_date', {
+        params: { tags: 'story,author_whoishiring', numericFilters: `created_at_i>${ninetyDaysAgo}`, hitsPerPage: 1 },
         timeout: 10000
       });
       if (!data.hits?.length) return [];
@@ -28,7 +29,7 @@ class HackerNewsScraper extends BaseScraper {
         const text = c.text || '';
         const firstLine = text.split('\n')[0] || text;
         const company = firstLine.replace(/^(points|apply|hiring)[:\s]*/i, '').trim().split('|')[0].trim();
-        const locationMatch = text.match(/(remote|bangalore|mumbai|delhi|pune|hyderabad|chennai|india)/i);
+        const locationMatch = text.match(/(remote|san francisco|sf|new york|nyc|london|berlin|seattle|austin|chicago|boston|los angeles|toronto|bangalore|mumbai|delhi|pune|hyderabad|chennai|india|united states|uk|europe|asia)/i);
         const skills = SKILL_KEYWORDS.filter(s => text.toLowerCase().includes(s));
         return {
           title: firstLine.slice(0, 80),

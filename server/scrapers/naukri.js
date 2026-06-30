@@ -2,11 +2,11 @@ const BaseScraper = require('./baseScraper');
 const launchBrowser = require('./launchBrowser');
 
 const URLS = [
-  'https://www.naukri.com/frontend-developer-jobs',
-  'https://www.naukri.com/backend-developer-jobs',
-  'https://www.naukri.com/full-stack-developer-jobs',
-  'https://www.naukri.com/data-scientist-jobs',
-  'https://www.naukri.com/devops-engineer-jobs'
+  { keyword: 'frontend developer', seoKey: 'frontend-developer-jobs' },
+  { keyword: 'backend developer', seoKey: 'backend-developer-jobs' },
+  { keyword: 'full stack developer', seoKey: 'full-stack-developer-jobs' },
+  { keyword: 'data scientist', seoKey: 'data-scientist-jobs' },
+  { keyword: 'devops engineer', seoKey: 'devops-engineer-jobs' }
 ];
 
 class NaukriScraper extends BaseScraper {
@@ -18,50 +18,47 @@ class NaukriScraper extends BaseScraper {
     const browser = await launchBrowser();
     if (!browser) return [];
     const jobs = [];
+    const seen = new Set();
+
     try {
-      for (const url of URLS) {
+      for (const { keyword, seoKey } of URLS) {
         const page = await browser.newPage();
-        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
-        await page.setRequestInterception(true);
-        page.on('request', req => {
-          if (['image', 'font', 'media', 'stylesheet'].includes(req.resourceType())) req.abort();
-          else req.continue();
-        });
-        try {
-          await page.goto(url, { waitUntil: 'networkidle2', timeout: 45000 });
-          await new Promise(r => setTimeout(r, 4000));
-          const data = await page.evaluate(() => {
-            const scripts = document.querySelectorAll('script[type="application/json"]');
-            for (const s of scripts) {
+        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36');
+
+        const apiPromise = new Promise(resolve => {
+          page.on('response', async res => {
+            if (res.url().includes('/jobapi/v3/search')) {
               try {
-                const parsed = JSON.parse(s.textContent);
-                if (parsed?.jobList?.length) return parsed.jobList;
-              } catch { }
+                const data = await res.json();
+                resolve(data?.jobDetails || []);
+              } catch { resolve([]); }
             }
-            const items = [];
-            document.querySelectorAll('.jobTuple, .job-card, [class*="job"]').forEach(el => {
-              const title = el.querySelector('[class*="title"]')?.textContent?.trim();
-              const company = el.querySelector('[class*="company"]')?.textContent?.trim();
-              if (title) items.push({ title, company });
+          });
+          setTimeout(() => resolve([]), 20000);
+        });
+
+        try {
+          await page.goto(`https://www.naukri.com/${seoKey}`, { waitUntil: 'networkidle2', timeout: 45000 });
+          const apiJobs = await apiPromise;
+
+          for (const j of apiJobs) {
+            const dedupKey = `${j.title}|${j.companyName}`;
+            if (seen.has(dedupKey)) continue;
+            seen.add(dedupKey);
+            jobs.push({
+              title: j.title || '',
+              company: j.companyName || '',
+              location: (j.placeholders || []).join(', ') || 'India',
+              salaryMin: parseInt(j.salaryDetail?.min) || 0,
+              salaryMax: parseInt(j.salaryDetail?.max) || 0,
+              skills: (j.tagsAndSkills || []).map(s => typeof s === 'string' ? s : s.label || s.text || ''),
+              postedAt: j.createdDate ? new Date(j.createdDate) : new Date(),
+              externalUrl: j.url || `https://www.naukri.com${j.jobDetailsUrl || ''}`,
+              applyUrl: j.url || `https://www.naukri.com${j.jobDetailsUrl || ''}`
             });
-            return items;
-          });
-          (data || []).forEach(j => {
-            if (j.title && j.company) {
-              jobs.push({
-                title: j.title,
-                company: j.company,
-                location: j.location || 'India',
-                salaryMin: j.salaryMin || 0,
-                salaryMax: j.salaryMax || 0,
-                skills: (j.skills || []).map(s => typeof s === 'string' ? s : s.label || ''),
-                postedAt: j.postedAt ? new Date(j.postedAt) : new Date(),
-                externalUrl: j.url || url
-              });
-            }
-          });
+          }
         } catch (err) {
-          console.warn(`[Naukri] Failed to fetch ${url}: ${err.message}`);
+          console.warn(`[Naukri] Failed ${keyword}: ${err.message}`);
         }
         await page.close();
       }

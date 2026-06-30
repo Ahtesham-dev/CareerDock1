@@ -23,7 +23,7 @@ import Alerts from './pages/Alerts';
 import Search from './pages/Search';
 import Profile from './pages/Profile';
 
-const ALL_SOURCES = ['LinkedIn', 'Naukri', 'JSearch', 'Internshala', 'Career Pages', 'Wellfound', 'GitHub', 'HackerNews', 'Dev.to', 'YCombinator', 'Peerlist'];
+const ALL_SOURCES = ['LinkedIn', 'Naukri', 'JSearch', 'Internshala', 'Career Pages', 'Wellfound', 'GitHub', 'HackerNews', 'Dev.to', 'YCombinator', 'Peerlist', 'Instahyre', 'Cutshort', 'Hirect'];
 
 function AppLayout() {
   const [collapsed, setCollapsed] = useState(false);
@@ -32,7 +32,7 @@ function AppLayout() {
 
   const toggleSource = (source) => {
     setActiveSources(prev =>
-      prev.includes(source) ? prev.filter(s => s !== source) : [...prev, source]
+      prev.length === 1 && prev[0] === source ? ALL_SOURCES : [source]
     );
   };
 

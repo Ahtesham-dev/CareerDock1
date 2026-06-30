@@ -27,7 +27,7 @@ class PipelineOrchestrator {
 
   async runFullPipeline(options = {}) {
     const {
-      sources = ['ycombinator', 'peerlist'],
+      sources = ['ycombinator', 'peerlist', 'cutshort', 'instahyre', 'hirect'],
       refreshRegistry = true,
       dedup = true,
       validate = true,
@@ -172,7 +172,10 @@ class PipelineOrchestrator {
 
     try {
       if (sourceKey === 'ycombinator') {
-        rawJobs = await adapter.fetchJobs({ refreshRegistry: options.refreshRegistry !== false });
+        rawJobs = await adapter.fetchJobs({
+          refreshRegistry: options.refreshRegistry !== false,
+          maxCompanies: options.maxCompanies
+        });
       } else {
         rawJobs = await adapter.fetchJobs();
       }

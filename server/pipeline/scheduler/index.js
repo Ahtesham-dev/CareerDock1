@@ -14,7 +14,7 @@ class PipelineScheduler {
 
     this.scheduledJobs.push(
       cron.schedule('0 */2 * * *', () => this._runWithLock('Full pipeline (every 2h)', () =>
-        orchestrator.runFullPipeline({ trigger: 'scheduled', sources: ['ycombinator', 'peerlist'] })
+        orchestrator.runFullPipeline({ trigger: 'scheduled', sources: ['ycombinator', 'peerlist', 'cutshort', 'instahyre', 'hirect'] })
       ))
     );
 
@@ -31,6 +31,24 @@ class PipelineScheduler {
     );
 
     this.scheduledJobs.push(
+      cron.schedule('0 */6 * * *', () => this._runWithLock('Cutshort refresh (4x/day)', () =>
+        orchestrator.runSource('cutshort', { trigger: 'scheduled' })
+      ))
+    );
+
+    this.scheduledJobs.push(
+      cron.schedule('0 */6 * * *', () => this._runWithLock('Instahyre refresh (4x/day)', () =>
+        orchestrator.runSource('instahyre', { trigger: 'scheduled' })
+      ))
+    );
+
+    this.scheduledJobs.push(
+      cron.schedule('0 */6 * * *', () => this._runWithLock('Hirect refresh (4x/day)', () =>
+        orchestrator.runSource('hirect', { trigger: 'scheduled' })
+      ))
+    );
+
+    this.scheduledJobs.push(
       cron.schedule('0 3 * * *', () => this._runWithLock('Daily maintenance', async () => {
         const { storage } = require('../processors');
         const expired = await storage.markExpired('all', 7);
@@ -40,7 +58,7 @@ class PipelineScheduler {
     );
 
     setTimeout(() => this._runWithLock('Initial pipeline start', () =>
-      orchestrator.runFullPipeline({ trigger: 'startup', sources: ['ycombinator', 'peerlist'] })
+      orchestrator.runFullPipeline({ trigger: 'startup', sources: ['ycombinator', 'peerlist', 'cutshort', 'instahyre', 'hirect'] })
     ), 15000);
 
     this.logger.info('Pipeline scheduler started successfully');

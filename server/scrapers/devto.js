@@ -1,7 +1,10 @@
 const axios = require('axios');
 const BaseScraper = require('./baseScraper');
 
-const TAGS = ['job', 'hiring', 'jobs', 'careers', 'recruitment', 'remote'];
+const TAGS = ['hiring', 'job'];
+
+const HIRING_PATTERN = /^(.+?)\s+(?:is|are|we'?re?)\s+(?:hiring|looking\s+for|seeking)\s+/i;
+const HIRING_SUFFIX = /\s+(?:is|are|we'?re?)\s+(?:hiring|looking\s+for|seeking)\s+/i;
 
 class DevToScraper extends BaseScraper {
   constructor() {
@@ -17,12 +20,19 @@ class DevToScraper extends BaseScraper {
           timeout: 10000
         });
         (data || []).forEach(article => {
-          const titleParts = (article.title || '').split('-');
-          const company = titleParts.length > 1 ? titleParts.pop().trim() : article.user?.username || '';
+          const title = (article.title || '').trim();
+          if (!HIRING_SUFFIX.test(title)) return;
+
+          const match = title.match(HIRING_PATTERN);
+          if (!match) return;
+
+          const company = match[1].trim();
+          const jobTitle = title.replace(HIRING_SUFFIX, ' ').replace(company + ' ', '').replace(/^(a|an|the)\s+/i, '').trim();
+
           jobs.push({
-            title: article.title || '',
+            title: jobTitle || title,
             company,
-            location: (article.tags || []).includes('remote') ? 'Remote' : 'Remote',
+            location: (article.tag_list || []).includes('remote') ? 'Remote' : 'Remote',
             skills: article.tag_list || [],
             externalUrl: article.url || '',
             description: article.description || '',

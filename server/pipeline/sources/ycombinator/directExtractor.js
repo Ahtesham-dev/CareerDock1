@@ -5,7 +5,8 @@ const PipelineLogger = require('../../monitoring/logger');
 const KNOWN_CAREERS = [
   '/careers', '/jobs', '/career', '/join-us', '/work-with-us',
   '/about#jobs', '/about/careers', '/team#jobs', '/hiring',
-  '/about-us/careers', '/company/careers', '/life-at', '/open-positions'
+  '/about-us/careers', '/company/careers', '/life-at', '/open-positions',
+  '/opportunities', '/working-at', '/join', '/current-openings', '/apply'
 ];
 
 class YCDirectExtractor {
@@ -52,8 +53,11 @@ class YCDirectExtractor {
   async _fetchPage(url) {
     try {
       const { data } = await axios.get(url, {
-        timeout: 15000,
-        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+        timeout: 30000,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          'Accept-Language': 'en-US,en;q=0.9'
+        },
         responseType: 'text'
       });
       return data;
