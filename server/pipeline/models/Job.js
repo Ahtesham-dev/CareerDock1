@@ -38,7 +38,7 @@ jobSchema.index({ source: 1, postedAt: -1 });
 jobSchema.index({ skills: 1 });
 jobSchema.index({ qualityScore: -1 });
 jobSchema.index({ dupGroup: 1 });
-jobSchema.index({ hash: 1 }, { unique: true, sparse: true });
+jobSchema.index({ hash: 1 }, { sparse: true });
 jobSchema.index({ active: 1, postedAt: -1 });
 jobSchema.index({ company: 1, active: 1 });
 jobSchema.index({ source: 1, sourceJobId: 1 }, { unique: true, sparse: true });

@@ -15,8 +15,13 @@ class NaukriScraper extends BaseScraper {
   }
 
   async fetchJobs() {
-    const browser = await launchBrowser();
-    if (!browser) return [];
+    let browser;
+    try {
+      browser = await launchBrowser();
+    } catch (err) {
+      console.error(`[Naukri] Browser unavailable: ${err.message}`);
+      return [];
+    }
     const jobs = [];
     const seen = new Set();
 

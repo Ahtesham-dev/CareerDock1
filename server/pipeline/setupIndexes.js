@@ -9,7 +9,7 @@ async function setupPipelineIndexes() {
 
   const jobs = db.collection('jobs');
   await jobs.createIndexes([
-    { key: { hash: 1 }, unique: true, sparse: true, name: 'idx_hash' },
+    { key: { hash: 1 }, sparse: true, name: 'idx_hash' },
     { key: { source: 1, sourceJobId: 1 }, unique: true, sparse: true, name: 'idx_source_jobid' },
     { key: { active: 1, postedAt: -1 }, name: 'idx_active_posted' },
     { key: { company: 1, active: 1 }, name: 'idx_company_active' },

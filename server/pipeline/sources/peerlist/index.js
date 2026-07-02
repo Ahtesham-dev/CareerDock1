@@ -1,40 +1,6 @@
 const SourceAdapter = require('../baseAdapter');
 const PipelineLogger = require('../../monitoring/logger');
-
-function _findChromePath() {
-  const paths = [
-    process.env.CHROME_PATH,
-    process.env.PUPPETEER_EXECUTABLE_PATH,
-    'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-    'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
-    `${process.env.LOCALAPPDATA}\\Google\\Chrome\\Application\\chrome.exe`,
-    '/usr/bin/google-chrome',
-    '/usr/bin/chromium-browser',
-    '/usr/bin/chromium',
-    '/snap/bin/chromium'
-  ].filter(Boolean);
-  const fs = require('fs');
-  for (const p of paths) {
-    try { if (fs.existsSync(p)) return p; } catch {}
-  }
-  return null;
-}
-
-async function _launchBrowser() {
-  const args = ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu', '--ignore-certificate-errors'];
-  // Try puppeteer (bundled Chrome) first
-  try {
-    const puppeteer = require('puppeteer');
-    return await puppeteer.launch({ headless: 'new', args });
-  } catch {}
-  // Fall back to puppeteer-core with system Chrome
-  try {
-    const puppeteer = require('puppeteer-core');
-    const chromePath = _findChromePath();
-    if (chromePath) return await puppeteer.launch({ headless: 'new', args, executablePath: chromePath });
-  } catch {}
-  return null;
-}
+const { launchBrowser } = require('../../lib/browser/launcher');
 
 class PeerlistAdapter extends SourceAdapter {
   constructor() {
@@ -72,9 +38,11 @@ class PeerlistAdapter extends SourceAdapter {
   }
 
   async _fetchPageWithBrowser() {
-    const browser = await _launchBrowser();
-    if (!browser) {
-      this.logger.error('No browser available (puppeteer/puppeteer-core not found)');
+    let browser;
+    try {
+      browser = await launchBrowser();
+    } catch (err) {
+      this.logger.error(`Peerlist browser unavailable: ${err.message}`);
       return null;
     }
 
