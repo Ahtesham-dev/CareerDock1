@@ -11,7 +11,8 @@ const PORT = process.env.PORT || 5000;
 const allowedOrigins = [
   'http://localhost:3000',
   process.env.CLIENT_URL,
-  'https://jobiq.vercel.app'
+  'https://jobiq.vercel.app',
+  'https://career-dock1.vercel.app'
 ].filter(Boolean);
 
 app.use(cors({ origin: allowedOrigins, credentials: true }));
