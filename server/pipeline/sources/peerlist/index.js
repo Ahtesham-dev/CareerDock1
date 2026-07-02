@@ -1,6 +1,6 @@
 const SourceAdapter = require('../baseAdapter');
 const PipelineLogger = require('../../monitoring/logger');
-const { launchBrowser } = require('../../lib/browser/launcher');
+const { launchBrowser } = require('../../../lib/browser/launcher');
 
 class PeerlistAdapter extends SourceAdapter {
   constructor() {
