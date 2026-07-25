@@ -11,8 +11,8 @@ The Legacy Scrapers Subsystem is the original job data ingestion layer for Caree
 ```
 Legacy Scheduler (server/scheduler.js)
   │  Initial: 10s after boot
-  │  Cron: 0 * * * * (hourly)
-  │  Cron: */30 * * * * (JSearch only)
+  │  Cron: 0 * * * * (hourly — all scrapers including JSearch)
+  │  Cron: */30 * * * * (job alert matching via matching engine)
   │
   ▼
 runAllScrapers() / runScraper(name)

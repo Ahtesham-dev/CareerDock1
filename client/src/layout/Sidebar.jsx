@@ -1,15 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { jobsAPI } from '../api';
-import Badge from '../components/ui/Badge';
+import SourceFilterPanel from '../components/SourceFilterPanel';
 import Logo from '../components/Logo';
 import { GradientSpan } from '../components/BrandText';
 
 const navItems = [
   { path: '/dashboard', icon: 'layout-dashboard', label: 'Job Feed' },
-  { path: '/command-center', icon: 'chart-ppie', label: 'Stats' },
+  { path: '/command-center', icon: 'chart-ppie', label: 'Statistics' },
   { path: '/saved', icon: 'bookmark', label: 'Saved Jobs' },
   { path: '/applications', icon: 'clipboard-list', label: 'Applications' },
   { path: '/insights', icon: 'eye', label: 'Insights' },
@@ -18,35 +17,14 @@ const navItems = [
   { path: '/settings', icon: 'settings', label: 'Settings' }
 ];
 
-const sourceGroups = [
-  { label: 'Professional', sources: ['LinkedIn', 'Naukri'] },
-  { label: 'Aggregator', sources: ['JSearch'] },
-  { label: 'General', sources: ['Internshala', 'Career Pages'] },
-  { label: 'Startup', sources: ['Wellfound', 'YCombinator', 'Instahyre', 'Cutshort', 'Hirect'] },
-  { label: 'Community', sources: ['GitHub', 'HackerNews', 'Dev.to', 'Peerlist'] }
-];
-
-const sourceColors = { LinkedIn: 'blue', Naukri: 'red', JSearch: 'indigo', Internshala: 'green', 'Career Pages': 'purple', Wellfound: 'amber', GitHub: 'gray', HackerNews: 'amber', 'Dev.to': 'gray', YCombinator: 'orange', Peerlist: 'teal', Instahyre: 'cyan', Cutshort: 'pink', Hirect: 'lime' };
-
 export default function Sidebar({ activeSources, toggleSource, collapsed, onToggle }) {
-  const [sourceCounts, setSourceCounts] = useState({});
   const [arrowHovered, setArrowHovered] = useState(false);
   const { logout } = useAuth();
-
-  useEffect(() => {
-    jobsAPI.getSourceCounts()
-      .then(res => {
-        const map = {};
-        (res.data.sources || []).forEach(s => { map[s._id] = s.count; });
-        setSourceCounts(map);
-      })
-      .catch(() => {});
-  }, []);
 
   return (
     <motion.aside
       animate={{ width: collapsed ? 68 : 248 }}
-      className="h-screen bg-surface-raised border-r border-white/[0.06] flex flex-col overflow-hidden shrink-0"
+      className="h-screen bg-surface-raised border-r border-white/[0.06] flex flex-col overflow-hidden shrink-0 min-w-0"
     >
       <div className="p-4 flex items-center gap-3 border-b border-white/[0.06] h-16 shrink-0">
         <motion.div whileHover={{ scale: 1.05 }} className="w-9 h-9 shrink-0">
@@ -90,37 +68,8 @@ export default function Sidebar({ activeSources, toggleSource, collapsed, onTogg
 
       <div className="flex-1 overflow-y-auto min-h-0">
         {!collapsed && (
-          <div className="p-4 border-t border-white/[0.06]">
-            <p className="text-sm text-text-secondary uppercase tracking-widest mb-3 px-1 font-semibold flex items-center gap-2">
-              <i className="ti ti-filter text-sm" /> Sources
-              <span className="text-xs text-accent-light/80 font-semibold normal-case">({activeSources?.length || 0} active)</span>
-            </p>
-            <div className="space-y-1.5">
-              {sourceGroups.map(group => (
-                <div key={group.label}>
-                  <p className="text-xs text-text-muted uppercase tracking-[0.12em] px-1.5 py-0.5 font-semibold">{group.label}</p>
-                  <div className="space-y-1.5">
-                    {group.sources.map(source => (
-                      <button
-                        key={source}
-                        onClick={() => toggleSource(source)}
-                        className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs transition-all duration-200 ${
-                          activeSources?.includes(source)
-                            ? 'text-text-primary bg-white/[0.08] border border-white/[0.08] font-medium'
-                            : 'text-text-muted hover:text-text-secondary hover:bg-white/[0.04]'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <div className={`w-2 h-2 rounded-full ${activeSources?.includes(source) ? 'bg-accent shadow-premium' : 'bg-white/30'}`} />
-                          <span className="text-sm">{source}</span>
-                        </div>
-                        <span className="text-xs text-text-muted/60 font-medium">{sourceCounts[source] || 0}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
+          <div className="border-t border-white/[0.06]">
+            <SourceFilterPanel activeSources={activeSources} toggleSource={toggleSource} />
           </div>
         )}
       </div>

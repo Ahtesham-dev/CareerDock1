@@ -44,12 +44,36 @@ The Services layer provides shared infrastructure for the CareerDock backend: ca
 ### email.js (63 lines) — Email Service
 - Transporter: nodemailer with SMTP_HOST/PORT/USER/PASS from env
 - `buildJobAlertHtml(jobs, alert)` — HTML email template with job rows + alert criteria
-- `sendJobAlert(email, jobs, alert)` — Sends email; silently logs if SMTP not configured
+- `sendJobAlert(email, jobs, alert)` — Sends email; throws if SMTP not configured or send fails
 - **Default host:** smtp.gmail.com:587
 
-### jobAlertCron.js (38 lines) — Job Alert Cron
-- `checkAlerts()` — Finds all active JobAlerts, builds MongoDB query per alert (keywords regex OR, location, salaryMax, employmentType), fetches up to 20 matching jobs, sends email via `sendJobAlert`, updates `lastCheckedAt`
-- Called manually via API route or scheduled cron
+### jobAlertCron.js (11 lines) — Job Alert Cron (rewritten to use matching engine)
+- `checkAlerts()` — Tracks `lastCheck` timestamp, calls `pollNewJobs(since)` which delegates to the matching engine
+- The old keyword-regex query logic has been replaced by the matching engine services below
+- Called manually via API route or scheduled cron every 30 minutes
+
+### matching/isMatch.js (44 lines) — Job Alert Matching Predicate
+- Pure function `isMatch(job, alert)` — determines if a job matches an alert's criteria
+- All checks are AND'd:
+  - **Keywords** — Parses `alert.keywords` (comma-separated), matches against `job.title`, `job.company`, or `job.skills` (case-insensitive substring)
+  - **Location** — Case-insensitive partial match between `alert.location` and `job.location`
+  - **Minimum salary** — `alert.minSalary` (in Lakhs) converted to raw number (`* 100000`), compared against `job.salaryMax`
+  - **Employment type** — Exact match against `job.type`
+- Graceful when any field is empty/missing (skips that check)
+- Unit testable, zero dependencies on MongoDB
+
+### matching/runMatching.js (85 lines) — Core Matching Engine
+- `runMatching(newJobs)` — Takes newly created/updated jobs, runs against all active alerts
+- Queries `JobAlert.find({ isActive: true })` — one-document-per-alert schema
+- For each match: checks `MatchLog` for dedup (compound unique index on userId+jobId+alertId)
+- Bulk-writes `MatchLog` entries, then sends emails via existing `email.js` `sendJobAlert()`
+- Email failures logged in `MatchLog` with `emailStatus: 'failed'`
+- Decoupled: slow SMTP never blocks the match loop
+
+### matching/pollNewJobs.js (17 lines) — Scheduled Poll Trigger
+- `pollNewJobs(since)` — Queries `Job.find({ createdAt: { $gt: since } })` for new jobs since last poll
+- Selects fields needed for matching: title, company, skills, experience, salaryMin/Max, location, type
+- Delegates to `runMatching()` — this is the swappable seam (today cron, tomorrow Change Streams)
 
 ### linkedin.js (36 lines) — LinkedIn OAuth Service
 - `searchJobs(query, location)` — Calls LinkedIn v2 jobSearch API with access token; maps response to title/company/location/externalUrl
@@ -90,7 +114,16 @@ The Services layer provides shared infrastructure for the CareerDock backend: ca
 | EMAIL_FROM | Email | No | CareerDock <noreply@careerdock.app> |
 | LINKEDIN_ACCESS_TOKEN | LinkedIn | No | — |
 
-## 5. Dependencies
+## 5. Models Used by Services
+
+| Model | Used By |
+|-------|---------|
+| `JobAlert` | matching/runMatching.js |
+| `MatchLog` | matching/runMatching.js |
+| `User` | matching/runMatching.js |
+| `Job` | matching/pollNewJobs.js |
+
+## 6. Dependencies
 
 | Package | Used By |
 |---------|---------|
@@ -100,16 +133,17 @@ The Services layer provides shared infrastructure for the CareerDock backend: ca
 | `@xenova/transformers` | embeddings.js (optional, dynamic import) |
 | `axios` | linkedin.js, urlValidation.js |
 
-## 6. Known Issues
+## 7. Known Issues
 
 1. **Cache memory TTL drift** — `setTimeout` for memory cache expiration is per-key; long-running server may accumulate drift
 2. **Embeddings model loading blocks** — First call to `getEmbedding` loads model synchronously (multi-second freeze)
 3. **URL validation can mark valid URLs as invalid** — HEAD not supported by all servers; fallback GET may be blocked by WAFs
-4. **Email silently fails** — `sendJobAlert` only logs on failure, caller never knows
-5. **JobAlertCron keyword $or logic** — Multiple keywords create `$or` of `$or` conditions, which is nested incorrectly: `{$or: [{$or:[title,company,skills]}, {$or:[...]}]}` — should flatten to `{$or: [title,company,skills,...]}`
-6. **LinkedIn service uses deprecated v2 API** — LinkedIn v2 jobSearch is being phased out; no migration path documented
-7. **CleanupService.archiveOldJobs deletes permanently** — `deleteMany` with no soft-delete or backup
+4. ~~**Email silently fails** — `sendJobAlert` only logs on failure, caller never knows~~ **FIXED** — Now throws, caller catches and marks `MatchLog` as `failed`
+5. **=== RESOLVED ===** JobAlertCron keyword `$or` logic has been replaced by the matching engine (`matching/isMatch.js`), which uses proper per-keyword matching against title/company/skills
+6. **Matching engine per-job per-alert loop** — `runMatching` iterates every new job × every active alert (O(n*m)). For large datasets, this may be slow; consider index-only pre-filtering
+7. **LinkedIn service uses deprecated v2 API** — LinkedIn v2 jobSearch is being phased out; no migration path documented
+8. **CleanupService.archiveOldJobs deletes permanently** — `deleteMany` with no soft-delete or backup
 
-## 7. Reverse Engineering Test: PASS
-## 8. Second Engineer Review: PASS
-## 9. AI Reproduction Test: PASS
+## 8. Reverse Engineering Test: PASS
+## 9. Second Engineer Review: PASS
+## 10. AI Reproduction Test: PASS

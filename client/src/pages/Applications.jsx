@@ -29,7 +29,7 @@ export default function Applications() {
   return (
     <div>
       <TopNav title="Applications" subtitle="Track every job you have applied to" />
-      <div className="p-4 lg:p-6">
+      <div className="p-4 lg:p-6 w-full max-w-full min-w-0">
         {error && <div className="card-premium p-4 text-error text-sm mb-4"><i className="ti ti-alert-circle" /> {error}</div>}
         {loading ? <TableSkeleton rows={6} /> : apps.length === 0 ? (
           <div className="card-premium p-12 text-center">
@@ -37,44 +37,67 @@ export default function Applications() {
             <p className="text-text-secondary text-sm">No applications yet. Start applying to jobs!</p>
           </div>
         ) : (
-          <div className="card-premium overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-white/[0.06] text-text-muted text-xs uppercase tracking-wider">
-                    <th className="text-left py-3.5 px-4 font-medium">Company</th>
-                    <th className="text-left py-3.5 px-4 font-medium">Role</th>
-                    <th className="text-left py-3.5 px-4 font-medium">Status</th>
-                    <th className="text-left py-3.5 px-4 font-medium">Source</th>
-                    <th className="text-left py-3.5 px-4 font-medium">Applied</th>
-                    <th className="text-left py-3.5 px-4 font-medium hidden md:table-cell">Notes</th>
-                    <th className="text-right py-3.5 px-4 font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {apps.map((app, i) => (
-                    <motion.tr key={app._id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }}
-                      className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors">
-                      <td className="py-3.5 px-4 font-medium text-text-primary">{app.company}</td>
-                      <td className="py-3.5 px-4 text-text-secondary">{app.role}</td>
-                      <td className="py-3.5 px-4">
-                        <select value={app.status} onChange={e => handleStatusChange(app._id, e.target.value)}
-                          className="bg-white/5 border border-white/[0.08] rounded-lg text-xs px-2.5 py-1.5 text-text-primary focus:outline-none focus:border-accent cursor-pointer">
-                          {Object.keys(statusColors).map(s => <option key={s} value={s}>{s}</option>)}
-                        </select>
-                      </td>
-                      <td className="py-3.5 px-4"><Badge color={statusColors[app.status]}>{app.source}</Badge></td>
-                      <td className="py-3.5 px-4 text-text-muted">{new Date(app.appliedDate).toLocaleDateString()}</td>
-                      <td className="py-3.5 px-4 text-text-muted max-w-[180px] truncate hidden md:table-cell">{app.notes || '-'}</td>
-                      <td className="py-3.5 px-4 text-right">
-                        <button onClick={() => handleDelete(app._id)} className="btn-ghost p-1.5 text-text-muted hover:text-error transition-colors"><i className="ti ti-trash text-sm" /></button>
-                      </td>
-                    </motion.tr>
-                  ))}
-                </tbody>
-              </table>
+          <>
+            <div className="hidden md:block card-premium overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-white/[0.06] text-text-muted text-xs uppercase tracking-wider">
+                      <th className="text-left py-3.5 px-4 font-medium">Company</th>
+                      <th className="text-left py-3.5 px-4 font-medium">Role</th>
+                      <th className="text-left py-3.5 px-4 font-medium">Status</th>
+                      <th className="text-left py-3.5 px-4 font-medium">Source</th>
+                      <th className="text-left py-3.5 px-4 font-medium">Applied</th>
+                      <th className="text-left py-3.5 px-4 font-medium hidden md:table-cell">Notes</th>
+                      <th className="text-right py-3.5 px-4 font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {apps.map((app, i) => (
+                      <motion.tr key={app._id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }}
+                        className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors">
+                        <td className="py-3.5 px-4 font-medium text-text-primary">{app.company}</td>
+                        <td className="py-3.5 px-4 text-text-secondary">{app.role}</td>
+                        <td className="py-3.5 px-4">
+                          <select value={app.status} onChange={e => handleStatusChange(app._id, e.target.value)}
+                            className="bg-white/5 border border-white/[0.08] rounded-lg text-xs px-2.5 py-1.5 text-text-primary focus:outline-none focus:border-accent cursor-pointer">
+                            {Object.keys(statusColors).map(s => <option key={s} value={s}>{s}</option>)}
+                          </select>
+                        </td>
+                        <td className="py-3.5 px-4"><Badge color={statusColors[app.status]}>{app.source}</Badge></td>
+                        <td className="py-3.5 px-4 text-text-muted">{new Date(app.appliedDate).toLocaleDateString()}</td>
+                        <td className="py-3.5 px-4 text-text-muted max-w-[180px] truncate hidden md:table-cell">{app.notes || '-'}</td>
+                        <td className="py-3.5 px-4 text-right">
+                          <button onClick={() => handleDelete(app._id)} className="btn-ghost p-1.5 text-text-muted hover:text-error transition-colors"><i className="ti ti-trash text-sm" /></button>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
+            <div className="md:hidden space-y-3">
+              {apps.map(app => (
+                <motion.div key={app._id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="card-premium p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-semibold text-text-primary">{app.company}</p>
+                      <p className="text-sm text-text-secondary">{app.role}</p>
+                    </div>
+                    <Badge color={statusColors[app.status]}>{app.source}</Badge>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <select value={app.status} onChange={e => handleStatusChange(app._id, e.target.value)}
+                      className="bg-white/5 border border-white/[0.08] rounded-lg text-xs px-2.5 py-1.5 text-text-primary focus:outline-none focus:border-accent cursor-pointer w-full">
+                      {Object.keys(statusColors).map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                    <button onClick={() => handleDelete(app._id)} className="btn-ghost p-1.5 text-text-muted hover:text-error transition-colors shrink-0"><i className="ti ti-trash text-sm" /></button>
+                  </div>
+                  <p className="text-xs text-text-muted">Applied {new Date(app.appliedDate).toLocaleDateString()}</p>
+                </motion.div>
+              ))}
+            </div>
+          </>
         )}
       </div>
     </div>

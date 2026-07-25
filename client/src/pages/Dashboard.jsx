@@ -17,20 +17,20 @@ const itemAnim = { show: { opacity: 1, y: 0 } };
 
 function JobCard({ job, savedIds, appliedIds, onSave, onApply, onFeedback }) {
   return (
-    <motion.div variants={itemAnim} className="card-premium-hover p-5 space-y-3.5 group">
+    <motion.div variants={itemAnim} className="card-premium-hover p-4 sm:p-5 space-y-3.5 group w-full min-w-0">
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-semibold text-text-primary truncate group-hover:text-accent-light transition-colors">{job.title}</h3>
+          <div className="flex flex-wrap items-center gap-2 mb-1">
+            <h3 className="font-semibold text-text-primary break-words group-hover:text-accent-light transition-colors">{job.title}</h3>
             {job.featured && <Badge color="indigo" dot>Featured</Badge>}
             {job.dupGroup && <Badge color="amber" dot>Duplicate</Badge>}
           </div>
-          <p className="text-sm text-text-secondary">{job.company}</p>
+          <p className="text-sm text-text-secondary break-words">{job.company}</p>
         </div>
-        <Badge color={sourceColors[job.source] || 'gray'}>{job.source}</Badge>
+        <Badge color={sourceColors[job.source] || 'gray'} className="shrink-0">{job.source}</Badge>
       </div>
-      <div className="flex items-center gap-4 text-xs text-text-muted flex-wrap">
-        <span className="flex items-center gap-1"><i className="ti ti-map-pin" />{job.location}</span>
+      <div className="flex items-center gap-2 sm:gap-4 text-xs text-text-muted flex-wrap">
+        <span className="flex items-center gap-1 break-words"><i className="ti ti-map-pin" />{job.location}</span>
         <span className="flex items-center gap-1"><i className="ti ti-briefcase" />{job.type}</span>
         {job.experience && <span className="flex items-center gap-1"><i className="ti ti-users" />{job.experience}</span>}
         {job.salaryLabel && <span className="flex items-center gap-1 text-success font-medium"><i className="ti ti-coin" />{job.salaryLabel}</span>}
@@ -42,7 +42,7 @@ function JobCard({ job, savedIds, appliedIds, onSave, onApply, onFeedback }) {
         ))}
         {(job.skills || []).length > 5 && <span className="px-2 py-0.5 text-xs text-text-muted">+{job.skills.length - 5}</span>}
       </div>
-      <div className="flex items-center gap-2 pt-2 border-t border-white/[0.06]">
+      <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-white/[0.06]">
         {savedIds.has(job._id) ? (
           <Button size="sm" variant="secondary" disabled><i className="ti ti-bookmark-filled text-accent-light" /> Saved</Button>
         ) : (
@@ -54,11 +54,11 @@ function JobCard({ job, savedIds, appliedIds, onSave, onApply, onFeedback }) {
           <Button size="sm" variant="primary" icon="send" onClick={() => onApply(job._id)}>Apply</Button>
         )}
         {job.externalUrl && (
-          <a href={job.externalUrl} target="_blank" rel="noopener noreferrer" className="btn-ghost p-2 ml-auto text-text-muted hover:text-text-primary">
+          <a href={job.externalUrl} target="_blank" rel="noopener noreferrer" className="btn-ghost p-2 ml-auto text-text-muted hover:text-text-primary shrink-0">
             <i className="ti ti-external-link" />
           </a>
         )}
-        <div className="flex gap-0.5">
+        <div className="flex gap-0.5 ml-auto sm:ml-0">
           <button onClick={() => onFeedback(job._id, 'up')} className="btn-ghost p-1.5 text-xs text-text-muted hover:text-success"><i className="ti ti-thumb-up" /></button>
           <button onClick={() => onFeedback(job._id, 'down')} className="btn-ghost p-1.5 text-xs text-text-muted hover:text-error"><i className="ti ti-thumb-down" /></button>
         </div>
@@ -92,8 +92,16 @@ export default function Dashboard({ activeSources = [] }) {
     if (exp) params.exp = exp;
     if (activeSources.length) params.sources = activeSources.join(',');
     jobsAPI.getJobs(params)
-      .then(res => { setJobs(res.data.jobs); setStats(prev => ({ ...prev, total: res.data.total, pages: res.data.pages })); })
-      .catch(() => setError('Failed to load jobs'))
+      .then(res => {
+        const nextJobs = Array.isArray(res.data.jobs) ? res.data.jobs : [];
+        setJobs(nextJobs);
+        setStats(prev => ({ ...prev, total: res.data.total || 0, pages: res.data.pages || 1 }));
+      })
+      .catch(() => {
+        setJobs([]);
+        setStats(prev => ({ ...prev, total: 0, pages: 1 }));
+        setError('Failed to load jobs');
+      })
       .finally(() => setLoading(false));
   };
 
@@ -126,18 +134,18 @@ export default function Dashboard({ activeSources = [] }) {
   };
 
   return (
-    <div>
+    <div className="w-full max-w-full min-w-0">
       <TopNav title="Job Feed" subtitle={`${stats.total} jobs found`}
         action={<Button variant="ghost" icon="chart-ppie" onClick={() => setPanelOpen(true)} className="hidden sm:flex">Insights</Button>} />
-      <div className="p-4 lg:p-6 space-y-4">
+      <div className="p-3 sm:p-4 lg:p-6 space-y-4 w-full max-w-full min-w-0">
         <div className="card-premium p-4 space-y-4">
-          <div className="flex flex-wrap gap-3">
-            <div className="relative flex-1 min-w-[220px]">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <div className="relative w-full sm:flex-1 min-w-0">
               <i className="ti ti-search absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted text-sm" />
               <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search jobs, companies, skills..." className="input-field w-full pl-10 h-10" />
             </div>
-            <div className="relative">
-              <button onClick={() => setSkillsOpen(!skillsOpen)} onBlur={() => setTimeout(() => setSkillsOpen(false), 200)} className={`input-field flex items-center gap-2 h-10 text-sm cursor-pointer ${skills.length > 0 ? 'text-accent-light border-accent/30' : ''}`}>
+            <div className="relative w-full sm:w-auto">
+              <button onClick={() => setSkillsOpen(!skillsOpen)} onBlur={() => setTimeout(() => setSkillsOpen(false), 200)} className={`input-field flex items-center gap-2 h-10 text-sm cursor-pointer w-full sm:w-auto ${skills.length > 0 ? 'text-accent-light border-accent/30' : ''}`}>
                 <i className="ti ti-code text-base" /> Skills{skills.length > 0 && <span className="text-xs bg-accent/20 text-accent-light px-1.5 py-0.5 rounded font-semibold">{skills.length}</span>}
                 <i className={`ti ti-chevron-down text-xs ml-2 transition-transform ${skillsOpen ? 'rotate-180' : ''}`} />
               </button>
@@ -158,28 +166,35 @@ export default function Dashboard({ activeSources = [] }) {
                 </div>
               )}
             </div>
-            <select value={type} onChange={e => setType(e.target.value)} className="input-field w-auto h-10 text-sm"><option value="">All Types</option><option value="Full-time">Full-time</option><option value="Remote">Remote</option><option value="Hybrid">Hybrid</option></select>
-            <select value={exp} onChange={e => setExp(e.target.value)} className="input-field w-auto h-10 text-sm"><option value="">All Levels</option><option value="Fresher">Fresher</option><option value="Mid-level">Mid-level</option><option value="Senior">Senior</option></select>
-            <select value={sort} onChange={e => setSort(e.target.value)} className="input-field w-auto h-10 text-sm"><option value="newest">Newest</option><option value="salary">Highest Salary</option><option value="match">Best Match</option></select>
+            <select value={type} onChange={e => setType(e.target.value)} className="input-field w-full sm:w-auto h-10 text-sm"><option value="">All Types</option><option value="Full-time">Full-time</option><option value="Remote">Remote</option><option value="Hybrid">Hybrid</option></select>
+            <select value={exp} onChange={e => setExp(e.target.value)} className="input-field w-full sm:w-auto h-10 text-sm"><option value="">All Levels</option><option value="Fresher">Fresher</option><option value="Mid-level">Mid-level</option><option value="Senior">Senior</option></select>
+            <select value={sort} onChange={e => setSort(e.target.value)} className="input-field w-full sm:w-auto h-10 text-sm"><option value="newest">Newest</option><option value="salary">Highest Salary</option><option value="match">Best Match</option></select>
           </div>
         </div>
 
         {error && <div className="card-premium p-4 text-error text-sm flex items-center gap-2 bg-error/5"><i className="ti ti-alert-circle" />{error}</div>}
 
         {loading ? (
-          <motion.div layout className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
             {[1,2,3,4,5,6].map(i => <CardSkeleton key={i} />)}
           </motion.div>
         ) : jobs.length === 0 ? (
-          <EmptyJobs onClearFilters={() => { setQ(''); setSkills([]); setType(''); setExp(''); }} onExploreTrending={() => setPanelOpen(true)} />
+          <div className="card-premium p-8 text-center space-y-3">
+            <i className="ti ti-search-off text-4xl text-text-muted" />
+            <div>
+              <p className="text-text-primary font-medium">No jobs available right now</p>
+              <p className="text-sm text-text-muted mt-1">Try clearing the filters or reopening the insights panel to refresh the feed.</p>
+            </div>
+            <Button variant="primary" icon="refresh" onClick={() => fetchJobs()}>Refresh feed</Button>
+          </div>
         ) : (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
             {jobs.map(job => <JobCard key={job._id} job={job} savedIds={savedIds} appliedIds={appliedIds} onSave={handleSave} onApply={handleApply} onFeedback={handleFeedback} />)}
           </motion.div>
         )}
 
         {stats.pages > 1 && (
-          <div className="flex items-center justify-center gap-3 pt-4">
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 pt-4">
             <Button variant="ghost" disabled={stats.page <= 1} onClick={() => setStats(prev => ({ ...prev, page: prev.page - 1 }))}>
               <i className="ti ti-chevron-left" /> Previous
             </Button>

@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useDrawer } from '../context/DrawerContext';
 
 export default function TopNav({ title, subtitle, action }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, displayName, logout } = useAuth();
+  const { toggle } = useDrawer();
 
   useEffect(() => {
     const handleClick = () => setMenuOpen(false);
@@ -15,11 +17,20 @@ export default function TopNav({ title, subtitle, action }) {
   }, [menuOpen]);
 
   return (
-    <nav className="sticky top-0 z-30 bg-surface-base/70 backdrop-blur-xl border-b border-white/[0.06]">
-      <div className="flex items-center justify-between px-6 h-16">
-        <div>
-          <h1 className="text-xl font-bold text-text-primary flex items-center gap-2">{title}</h1>
-          {subtitle && <p className="text-xs text-text-muted mt-0.5 ml-0.5">{subtitle}</p>}
+    <nav className="sticky top-0 z-30 bg-surface-base/70 backdrop-blur-xl border-b border-white/[0.06] w-full max-w-full">
+      <div className="flex items-center justify-between px-4 sm:px-6 h-16 min-w-0">
+        <div className="flex items-center gap-3 min-w-0">
+          <button
+            onClick={toggle}
+            className="lg:hidden btn-ghost p-1.5 -ml-1.5 rounded-lg"
+            aria-label="Open navigation menu"
+          >
+            <i className="ti ti-menu-2 text-lg" />
+          </button>
+          <div>
+            <h1 className="text-xl font-bold text-text-primary flex items-center gap-2 min-w-0">{title}</h1>
+            {subtitle && <p className="text-xs text-text-muted mt-0.5 ml-0.5 truncate">{subtitle}</p>}
+          </div>
         </div>
         <div className="flex items-center gap-2">
           {action}
@@ -35,11 +46,11 @@ export default function TopNav({ title, subtitle, action }) {
             >
               <div className="w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center">
                 <span className="text-sm font-semibold text-accent-light">
-                  {user?.name?.[0]?.toUpperCase() || 'U'}
+                  {displayName?.[0]?.toUpperCase() || 'U'}
                 </span>
               </div>
               <div className="hidden sm:block text-left">
-                <p className="text-sm font-medium text-text-primary leading-tight">{user?.name || 'User'}</p>
+                <p className="text-sm font-medium text-text-primary leading-tight">{displayName}</p>
                 <p className="text-[10px] text-text-muted">{user?.email || ''}</p>
               </div>
               <i className="ti ti-chevron-down text-text-muted text-xs" />
@@ -55,7 +66,7 @@ export default function TopNav({ title, subtitle, action }) {
                   onClick={e => e.stopPropagation()}
                 >
                   <div className="px-3 py-2 border-b border-white/[0.06] mb-1">
-                    <p className="text-sm font-medium">{user?.name || 'User'}</p>
+                    <p className="text-sm font-medium">{displayName}</p>
                     <p className="text-xs text-text-muted">{user?.email || ''}</p>
                   </div>
                   <button onClick={() => { navigate('/settings'); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-white/5 rounded-lg transition-colors">

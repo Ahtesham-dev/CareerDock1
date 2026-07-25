@@ -17,6 +17,10 @@ router.post('/', authMiddleware, async (req, res) => {
   try {
     const { keywords, location, minSalary, employmentType } = req.body;
     if (!keywords) return res.status(400).json({ message: 'Keywords required' });
+    const existing = await JobAlert.findOne({
+      userId: req.userId, keywords, location, minSalary: minSalary || 0, employmentType
+    });
+    if (existing) return res.status(409).json({ message: 'Identical alert already exists' });
     const alert = await JobAlert.create({
       userId: req.userId, keywords, location, minSalary: minSalary || 0, employmentType
     });

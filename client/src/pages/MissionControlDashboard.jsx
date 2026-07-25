@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import TopNav from '../layout/TopNav';
 import Badge from '../components/ui/Badge';
-import Button from '../components/ui/Button';
 import { StatSkeleton, ChartSkeleton } from '../components/ui/Skeleton';
 import { insightsAPI, jobsAPI, savedAPI } from '../api';
 import Logo from '../components/Logo';
@@ -29,9 +28,18 @@ export default function MissionControlDashboard() {
       .finally(() => setLoading(false));
   }, []);
 
+  const renderTitle = () => (
+    <div className="flex items-center gap-2 min-w-0">
+      <div className="shrink-0 flex items-center justify-center">
+        <Logo size={24} />
+      </div>
+      <span className="text-sm sm:text-base font-semibold tracking-wide">STATISTICS</span>
+    </div>
+  );
+
   if (loading) return (
     <div>
-      <TopNav title={<><Logo size={32} /><i className="ti ti-chart-ppie text-lg" /> STATISTICS</>} subtitle="Real-time analytics" />
+      <TopNav title={renderTitle()} subtitle="Real-time analytics" />
       <div className="p-4 lg:p-6 space-y-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">{[1,2,3,4].map(i => <StatSkeleton key={i} />)}</div>
         <div className="grid md:grid-cols-2 gap-4">{[1,2].map(i => <ChartSkeleton key={i} />)}</div>
@@ -48,7 +56,7 @@ export default function MissionControlDashboard() {
 
   return (
     <div>
-      <TopNav title={<><Logo size={32} /><i className="ti ti-chart-ppie text-lg" /> STATISTICS</>} subtitle="Real-time analytics" />
+      <TopNav title={renderTitle()} subtitle="Real-time analytics" />
       <div className="p-4 lg:p-6 space-y-6 pb-20">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {statsCards.map((s, i) => (

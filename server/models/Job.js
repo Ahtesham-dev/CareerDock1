@@ -11,6 +11,7 @@ const jobSchema = new mongoose.Schema({
   salaryMax: { type: Number, default: 0 },
   salaryLabel: { type: String, default: '' },
   source: { type: String, required: true },
+  sourceJobId: { type: String, default: '' },
   description: { type: String, default: '' },
   skills: [String],
   applied: { type: Number, default: 0 },

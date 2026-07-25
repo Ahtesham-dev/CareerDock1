@@ -45,19 +45,14 @@ const buildJobAlertHtml = (jobs, alert) => {
 
 const sendJobAlert = async (email, jobs, alert) => {
   if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    console.log(`Email not configured. Would send ${jobs.length} job alerts to ${email}`);
-    return;
+    throw new Error('Email not configured');
   }
-  try {
-    await transporter.sendMail({
-      from: process.env.EMAIL_FROM || 'CareerDock <noreply@careerdock.app>',
-      to: email,
-      subject: `CareerDock Alert: ${jobs.length} new jobs found`,
-      html: buildJobAlertHtml(jobs, alert)
-    });
-  } catch (err) {
-    console.error('Email send failed:', err.message);
-  }
+  await transporter.sendMail({
+    from: process.env.EMAIL_FROM || 'CareerDock <noreply@careerdock.app>',
+    to: email,
+    subject: `CareerDock Alert: ${jobs.length} new jobs found`,
+    html: buildJobAlertHtml(jobs, alert)
+  });
 };
 
 module.exports = { transporter, sendJobAlert, buildJobAlertHtml };

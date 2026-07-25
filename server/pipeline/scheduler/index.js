@@ -13,7 +13,7 @@ class PipelineScheduler {
     this.logger.info('Starting pipeline scheduler');
 
     this.scheduledJobs.push(
-      cron.schedule('0 */2 * * *', () => this._runWithLock('Full pipeline (every 2h)', () =>
+      cron.schedule('0 * * * *', () => this._runWithLock('Full pipeline (every hour)', () =>
         orchestrator.runFullPipeline({ trigger: 'scheduled', sources: ['ycombinator', 'peerlist', 'cutshort', 'instahyre', 'hirect'] })
       ))
     );

@@ -35,7 +35,7 @@ export default function SavedJobs() {
   return (
     <div>
       <TopNav title="Saved Jobs" subtitle="Track your applications visually" />
-      <div className="p-4 lg:p-6">
+      <div className="p-4 lg:p-6 w-full max-w-full min-w-0">
         {error && <div className="card-premium p-4 text-error text-sm mb-4 flex items-center gap-2"><i className="ti ti-alert-circle" />{error}</div>}
         {loading ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -44,7 +44,7 @@ export default function SavedJobs() {
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {columns.map(col => (
-              <div key={col} className="card-premium p-3 min-h-[200px]">
+              <div key={col} className="card-premium p-3 min-h-[200px] min-w-0">
                 <div className="flex items-center justify-between mb-3 px-1">
                   <div className="flex items-center gap-2">
                     <i className={`ti ti-${columnIcons[col]} text-sm text-text-muted`} />

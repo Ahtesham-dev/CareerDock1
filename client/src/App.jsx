@@ -1,12 +1,15 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
+import { DrawerContext } from './context/DrawerContext';
+import RequireAuth from './components/RequireAuth';
 import PageTransition from './layout/PageTransition';
 import Sidebar from './layout/Sidebar';
 import TopNav from './layout/TopNav';
 import MobileNav from './layout/MobileNav';
+import MobileDrawer from './layout/MobileDrawer';
 import BrandBar from './components/BrandBar';
 import LoadingScreen from './components/LoadingScreen';
 
@@ -27,8 +30,15 @@ const ALL_SOURCES = ['LinkedIn', 'Naukri', 'JSearch', 'Internshala', 'Career Pag
 
 function AppLayout() {
   const [collapsed, setCollapsed] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [activeSources, setActiveSources] = useState(ALL_SOURCES);
   const location = useLocation();
+
+  const drawerValue = useMemo(() => ({
+    open: drawerOpen,
+    toggle: () => setDrawerOpen(v => !v),
+    close: () => setDrawerOpen(false),
+  }), [drawerOpen]);
 
   const toggleSource = (source) => {
     setActiveSources(prev =>
@@ -37,35 +47,43 @@ function AppLayout() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <div className="hidden lg:block">
-        <Sidebar
+    <DrawerContext.Provider value={drawerValue}>
+      <div className="flex h-screen overflow-hidden w-full max-w-full min-w-0">
+        <MobileDrawer
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
           activeSources={activeSources}
           toggleSource={toggleSource}
-          collapsed={collapsed}
-          onToggle={() => setCollapsed(!collapsed)}
         />
-      </div>
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="flex-1 overflow-y-auto pb-16 lg:pb-0">
-          <AnimatePresence mode="wait">
-            <Routes location={location} key={location.pathname}>
-              <Route path="/dashboard" element={<PageTransition><Dashboard activeSources={activeSources} /></PageTransition>} />
-              <Route path="/command-center" element={<PageTransition><MissionControlDashboard /></PageTransition>} />
-              <Route path="/saved" element={<PageTransition><SavedJobs /></PageTransition>} />
-              <Route path="/applications" element={<PageTransition><Applications /></PageTransition>} />
-              <Route path="/insights" element={<PageTransition><Insights /></PageTransition>} />
-              <Route path="/alerts" element={<PageTransition><Alerts /></PageTransition>} />
-              <Route path="/search" element={<PageTransition><Search /></PageTransition>} />
-              <Route path="/settings" element={<PageTransition><Profile /></PageTransition>} />
-              <Route path="*" element={<Navigate to="/dashboard" replace />} />
-            </Routes>
-          </AnimatePresence>
+        <div className="hidden lg:block">
+          <Sidebar
+            activeSources={activeSources}
+            toggleSource={toggleSource}
+            collapsed={collapsed}
+            onToggle={() => setCollapsed(!collapsed)}
+          />
         </div>
-        <MobileNav />
+        <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+          <div className="flex-1 overflow-y-auto pb-16 lg:pb-0">
+            <AnimatePresence mode="wait">
+              <Routes location={location} key={location.pathname}>
+                <Route path="/dashboard" element={<PageTransition><Dashboard activeSources={activeSources} /></PageTransition>} />
+                <Route path="/command-center" element={<PageTransition><MissionControlDashboard /></PageTransition>} />
+                <Route path="/saved" element={<RequireAuth><PageTransition><SavedJobs /></PageTransition></RequireAuth>} />
+                <Route path="/applications" element={<RequireAuth><PageTransition><Applications /></PageTransition></RequireAuth>} />
+                <Route path="/insights" element={<PageTransition><Insights /></PageTransition>} />
+                <Route path="/alerts" element={<RequireAuth><PageTransition><Alerts /></PageTransition></RequireAuth>} />
+                <Route path="/search" element={<PageTransition><Search /></PageTransition>} />
+                <Route path="/settings" element={<RequireAuth><PageTransition><Profile /></PageTransition></RequireAuth>} />
+                <Route path="*" element={<Navigate to="/dashboard" replace />} />
+              </Routes>
+            </AnimatePresence>
+          </div>
+          <MobileNav />
+        </div>
+        <BrandBar />
       </div>
-      <BrandBar />
-    </div>
+    </DrawerContext.Provider>
   );
 }
 

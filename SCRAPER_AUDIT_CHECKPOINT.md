@@ -1,4 +1,4 @@
-# Scraper Audit Checkpoint — June 30, 2026
+# Scraper Audit Checkpoint — July 25, 2026
 
 ## Final Results
 

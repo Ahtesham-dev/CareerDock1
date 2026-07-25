@@ -1,5 +1,7 @@
 const express = require('express');
 const Job = require('../models/Job');
+const { authMiddleware } = require('../middleware/auth');
+const adminMiddleware = require('../middleware/admin');
 
 const router = express.Router();
 
@@ -93,7 +95,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const job = await Job.create(req.body);
     res.status(201).json(job);

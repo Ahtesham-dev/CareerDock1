@@ -50,18 +50,18 @@ export default function Search() {
   const sourceColors = { LinkedIn: 'blue', Naukri: 'red', Internshala: 'green', JSearch: 'indigo', Wellfound: 'amber', GitHub: 'gray' };
 
   return (
-    <div>
+    <div className="w-full max-w-full min-w-0">
       <TopNav title="Search Jobs" subtitle="Find your next opportunity" />
-      <div className="max-w-5xl mx-auto p-4 lg:p-6 space-y-4">
+      <div className="max-w-5xl mx-auto p-4 lg:p-6 space-y-4 w-full min-w-0">
         <div className="card-premium p-5 space-y-4">
-          <div className="flex flex-wrap gap-3">
-            <div className="relative flex-1 min-w-[200px]">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <div className="relative w-full sm:flex-1 min-w-0">
               <i className="ti ti-search absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted text-sm" />
               <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search by title, skill, company..."
                 className="input-field w-full pl-10 h-11 text-sm" onKeyDown={e => e.key === 'Enter' && doSearch(1)} />
             </div>
-            <select value={filterType} onChange={e => setFilterType(e.target.value)} className="input-field h-11 text-sm w-auto"><option value="">All Types</option><option>Full-time</option><option>Remote</option><option>Hybrid</option><option>Contract</option><option>Internship</option></select>
-            <select value={filterExp} onChange={e => setFilterExp(e.target.value)} className="input-field h-11 text-sm w-auto"><option value="">All Levels</option><option>Fresher</option><option>Mid-level</option><option>Senior</option><option>Lead</option></select>
+            <select value={filterType} onChange={e => setFilterType(e.target.value)} className="input-field h-11 text-sm w-full sm:w-auto"><option value="">All Types</option><option>Full-time</option><option>Remote</option><option>Hybrid</option><option>Contract</option><option>Internship</option></select>
+            <select value={filterExp} onChange={e => setFilterExp(e.target.value)} className="input-field h-11 text-sm w-full sm:w-auto"><option value="">All Levels</option><option>Fresher</option><option>Mid-level</option><option>Senior</option><option>Lead</option></select>
           </div>
           <div className="flex items-center justify-between">
             {hasSearched && !loading && <p className="text-xs text-text-muted">{total} result{total !== 1 ? 's' : ''} found</p>}
@@ -76,7 +76,7 @@ export default function Search() {
         </div>
 
         {loading ? (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[1,2,3,4,5,6].map(i => <CardSkeleton key={i} />)}
           </div>
         ) : !hasSearched ? (
@@ -90,9 +90,9 @@ export default function Search() {
             <p className="text-text-secondary text-sm">No results found. Try different keywords.</p>
           </div>
         ) : (
-          <motion.div variants={container} initial="hidden" animate="show" className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <motion.div variants={container} initial="hidden" animate="show" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {results.map(job => (
-              <motion.div key={job._id} variants={itemAnim} className="card-premium-hover p-5 space-y-3 group">
+              <motion.div key={job._id} variants={itemAnim} className="card-premium-hover p-5 space-y-3 group w-full min-w-0">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
                     <h3 className="font-semibold text-text-primary truncate group-hover:text-accent-light transition-colors">{job.title}</h3>

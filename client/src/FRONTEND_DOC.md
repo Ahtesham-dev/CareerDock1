@@ -22,14 +22,16 @@ client/src/
 ├── index.css               # Tailwind + custom CSS
 ├── index.js                # ReactDOM entry point
 ├── context/
-│   ├── AuthContext.jsx      # Auth state, login/register/logout/updateUser
+│   ├── AuthContext.jsx      # Auth state, login/register/logout/updateUser, guest support (loginAsGuest, displayName)
+│   ├── DrawerContext.jsx    # Mobile drawer state (open, toggle, close)
 │   └── ToastContext.jsx     # Toast notifications with AnimatePresence
 ├── hooks/
 │   └── useDebounce.js      # Debounced value (300ms default)
 ├── layout/
-│   ├── Sidebar.jsx         # Responsive collapsible sidebar with source filter
-│   ├── TopNav.jsx          # Top navigation bar with profile dropdown
+│   ├── Sidebar.jsx         # Responsive collapsible sidebar with source filter (uses SourceFilterPanel)
+│   ├── TopNav.jsx          # Top navigation bar with profile dropdown + hamburger button (mobile, lg:hidden)
 │   ├── MobileNav.jsx       # Bottom mobile navigation bar (5 items)
+│   ├── MobileDrawer.jsx    # Slide-in mobile drawer with source filter, user info, logout (swipe-to-close)
 │   └── PageTransition.jsx  # Framer Motion page wrapper (fade + y-slip)
 ├── components/
 │   ├── BrandBar.jsx        # Fixed bottom-right "Ahtesham × CareerDock" watermark
@@ -40,6 +42,7 @@ client/src/
 │   ├── RightPanel.jsx      # Slide-in market insights panel
 │   ├── FounderFooter.jsx   # Landing page footer with "Crafted by Ahtesham"
 │   ├── FounderSection.jsx  # Landing page founder section
+│   ├── SourceFilterPanel.jsx # Shared source filter component (used by Sidebar + MobileDrawer)
 │   └── ui/
 │       ├── Badge.jsx       # Colored badge component
 │       ├── Button.jsx      # Button variants: primary, secondary, ghost, success
@@ -51,8 +54,8 @@ client/src/
 │       └── Toggle.jsx      # Toggle switch with optional label
 └── pages/
     ├── Landing.jsx                 # Public landing page (517 lines)
-    ├── Login.jsx                   # Login form
-    ├── Register.jsx                # Registration form
+    ├── Login.jsx                   # Login form (has X button top-right to skip auth as guest)
+    ├── Register.jsx                # Registration form (has X button top-right to skip auth as guest)
     ├── FounderStory.jsx            # "Crafted by Ahtesham" narrative page
     ├── Dashboard.jsx               # Main job feed (202 lines)
     ├── MissionControlDashboard.jsx # Statistics dashboard
@@ -77,13 +80,16 @@ client/src/
 - Two route groups:
   - **Public:** `/` (Landing), `/login`, `/register`, `/crafted-by-ahtesham` (FounderStory)
   - **Protected (AppLayout):** `/dashboard`, `/command-center`, `/saved`, `/applications`, `/insights`, `/alerts`, `/search`, `/settings`
-- AppLayout contains: Sidebar (hidden on mobile), content area with TopNav + AnimatePresence + Routes, MobileNav (visible on mobile), BrandBar
-- `ALL_SOURCES` array (14 sources including pipeline sources) used for sidebar source filtering
+- AppLayout contains: MobileDrawer (mobile only), Sidebar (hidden on mobile via `lg:block`), content area with TopNav + AnimatePresence + Routes wrapped in DrawerContext.Provider, MobileNav (visible on mobile), BrandBar
+- `ALL_SOURCES` array (14 sources including pipeline sources) used for source filtering
+- Drawer state managed in AppLayout: `drawerOpen`, `setDrawerOpen`, exposed via `DrawerContext`
 
 ### AuthContext.jsx
-- On mount: checks localStorage token, calls `authAPI.me()` to validate
-- Provides: `user`, `loading`, `login()`, `register()`, `logout()`, `updateUser()`
+- On mount: checks localStorage token, calls `authAPI.me()` to validate; also checks localStorage 'guest' flag
+- Provides: `user`, `loading`, `guest`, `displayName`, `login()`, `register()`, `loginAsGuest()`, `logout()`, `updateUser()`
 - Login/register store token and set user state
+- `loginAsGuest()` sets localStorage `guest=true`, `displayName` returns 'Guest' for guest sessions
+- `logout()` clears both token and guest from localStorage
 
 ### ToastContext.jsx
 - Toast stack with AnimatePresence (slide-in from right)
@@ -106,23 +112,36 @@ client/src/
 - scrollYProgress-based hero scale/opacity
 - Intersection-observed count-up animations (35K duplicates, 9400 expired, 2800 fake)
 - Responsive mobile menu with AnimatePresence
+- "Get Started" CTA moved from hero section to bottom CTA section (users scroll through content first)
+- Hero section keeps only "Explore Jobs" primary CTA
+- Bottom "Get Started" links to /login (opens guest-skip flow)
 
 ### Sidebar.jsx
 - Collapsible (68px collapsed, 248px expanded) with AnimatePresence
 - 8 navigation items with active indicator (layoutId)
-- Source filter: 14 sources in 5 groups (Professional, Aggregator, General, Startup, Community) with color dots and live counts
-- Toggle behavior: click active source toggles to single-source, click same single-source resets to all
+- Source filter: uses shared `SourceFilterPanel` component (14 sources in 5 groups, color dots, live counts)
 - "Crafted by Ahtesham" footer with animated gradient glow
 - Logout button
 
 ### TopNav.jsx
 - Sticky top bar with title/subtitle, optional action slot
+- Hamburger button on left side (visible on mobile only via `lg:hidden`) — opens MobileDrawer via DrawerContext
 - User profile dropdown (animated) with Profile, Statistics, Sign Out links
 - Notification bell with dot indicator
 
 ### MobileNav.jsx
 - Fixed bottom bar (5 items: Feed, Stats, Saved, Apps, Insights)
 - Active indicator with layoutId animation
+
+### MobileDrawer.jsx
+- Slide-in drawer from left (270px wide) using framer-motion spring animation
+- Visible on mobile only (`lg:hidden`)
+- Backdrop with blur (closes drawer on tap)
+- Swipe-to-close via framer-motion drag (threshold: -80px offset or -200px/s velocity)
+- Close on Escape key
+- Accessible: `role="dialog"`, `aria-modal="true"`, `aria-label="Navigation menu"`
+- Contains: CareerDock logo + brand, SourceFilterPanel (Sources filter), "Logged in as: <username>" display, Logout button
+- Nothing else appears in the drawer
 
 ### Dashboard.jsx (Job Feed)
 - Filters: search query (debounced 300ms), skills dropdown, type, experience, sort

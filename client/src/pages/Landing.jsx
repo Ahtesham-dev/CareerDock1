@@ -238,11 +238,6 @@ export default function Landing() {
                   Explore Jobs
                   <i className="ti ti-arrow-right text-base group-hover:translate-x-0.5 transition-transform" />
                 </Link>
-                <Link to="/register"
-                  className="inline-flex items-center gap-2 text-white/60 hover:text-white/90 font-medium text-sm px-6 py-3 rounded-xl border border-white/[0.06] hover:border-white/[0.15] transition-all">
-                  Get Started
-                  <i className="ti ti-external-link text-sm" />
-                </Link>
               </motion.div>
 
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8, delay: 0.5 }}
@@ -496,9 +491,9 @@ export default function Landing() {
             </h2>
             <p className="text-sm text-white/40 max-w-lg mx-auto">Join thousands of professionals who discovered their next role through CareerDock. No noise. No spam. Just opportunities.</p>
             <div className="flex flex-wrap justify-center gap-3 pt-2">
-              <Link to="/register"
+              <Link to="/login"
                 className="relative group inline-flex items-center gap-2 bg-white text-[#07080d] font-semibold text-sm px-6 py-3 rounded-xl hover:bg-white/90 transition-all active:scale-[0.97]">
-                Start Free
+                Get Started
                 <i className="ti ti-arrow-right text-base group-hover:translate-x-0.5 transition-transform" />
               </Link>
               <Link to="/register"

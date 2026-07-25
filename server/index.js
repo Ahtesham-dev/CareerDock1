@@ -2,8 +2,18 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const { requestLogger, errorLogger } = require('./middleware/logger');
+
+if (!process.env.JWT_SECRET) {
+  console.error('FATAL: JWT_SECRET environment variable is required');
+  process.exit(1);
+}
+if (!process.env.MONGO_URI) {
+  console.error('FATAL: MONGO_URI environment variable is required');
+  process.exit(1);
+}
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -15,8 +25,19 @@ const allowedOrigins = [
   'https://career-dock1.vercel.app'
 ].filter(Boolean);
 
+app.use(helmet());
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json());
+
+const globalLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests, please try again later' }
+});
+app.use(globalLimiter);
+
 if (process.env.NODE_ENV !== 'production') app.use(requestLogger);
 
 // Health

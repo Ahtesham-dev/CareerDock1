@@ -3,10 +3,19 @@
 @tailwind utilities;
 
 @layer base {
-  * { @apply border-card-border; }
+  * { @apply border-card-border; box-sizing: border-box; }
+  html {
+    @apply min-h-full w-full overflow-x-hidden;
+  }
   body {
-    @apply bg-surface-base text-text-primary font-sans antialiased;
+    @apply bg-surface-base text-text-primary font-sans antialiased min-h-screen w-full overflow-x-hidden;
     scroll-behavior: smooth;
+  }
+  #root {
+    @apply min-h-screen w-full;
+  }
+  button, input, select, textarea {
+    @apply max-w-full;
   }
   ::selection { @apply bg-accent/30 text-white; }
   :focus-visible { @apply outline-none ring-2 ring-accent ring-offset-2 ring-offset-surface-base; }

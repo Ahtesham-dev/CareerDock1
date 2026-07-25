@@ -11,7 +11,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login, user } = useAuth();
+  const { login, user, loginAsGuest } = useAuth();
   const navigate = useNavigate();
   if (user) return <Navigate to="/dashboard" replace />;
   const handleSubmit = async (e) => {
@@ -24,6 +24,13 @@ export default function Login() {
   };
   return (
     <div className="min-h-screen bg-surface-base flex">
+      <button
+        onClick={() => { loginAsGuest(); navigate('/dashboard'); }}
+        className="fixed top-4 right-4 z-50 btn-ghost p-2 rounded-lg hover:bg-white/5"
+        aria-label="Continue as guest"
+      >
+        <i className="ti ti-x text-lg" />
+      </button>
       <div className="hidden lg:flex w-1/2 bg-surface-raised items-center justify-center p-12 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-purple-600/5" />
         <div className="absolute top-1/4 -left-20 w-80 h-80 bg-accent/5 rounded-full blur-[120px]" />

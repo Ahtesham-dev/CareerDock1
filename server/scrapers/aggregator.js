@@ -42,26 +42,42 @@ const upsertJobs = async (jobs, source) => {
     try {
       if (!validateJob(job)) { rejected++; continue; }
 
-      const query = [];
-      if (job.hash) query.push({ hash: job.hash });
-      if (job.source && job.sourceJobId) query.push({ source: job.source, sourceJobId: job.sourceJobId });
-      query.push({
-        title: job.title,
-        company: job.company,
-        location: job.location,
-        source
-      });
+      const normalizedJob = {
+        ...job,
+        title: job.title?.trim(),
+        company: job.company?.trim(),
+        location: job.location?.trim() || 'Remote',
+        source: job.source || source,
+        sourceJobId: job.sourceJobId || crypto.createHash('sha256').update(`${job.title}|${job.company}|${job.location}|${job.source || source}`).digest('hex').slice(0, 24),
+        hash: job.hash || crypto.createHash('sha256').update(`${job.title}|${job.company}|${job.location}|${job.source || source}`).digest('hex'),
+        postedAt: job.postedAt || now,
+        lastSeenAt: now,
+        updatedAt: now,
+        active: true,
+        applyUrl: job.applyUrl || job.externalUrl || '',
+        externalUrl: job.externalUrl || job.applyUrl || '',
+        salaryLabel: job.salaryLabel || job.salary || ''
+      };
+      delete normalizedJob._id;
 
-      const setData = { ...job, lastSeenAt: now, updatedAt: now };
-      delete setData._id;
+      const query = [];
+      if (normalizedJob.hash) query.push({ hash: normalizedJob.hash });
+      if (normalizedJob.source && normalizedJob.sourceJobId) query.push({ source: normalizedJob.source, sourceJobId: normalizedJob.sourceJobId });
+      query.push({ title: normalizedJob.title, company: normalizedJob.company, location: normalizedJob.location, source: normalizedJob.source });
+
+      const filter = query.length ? { $or: query } : { title: normalizedJob.title, company: normalizedJob.company };
 
       await Job.findOneAndUpdate(
-        { $or: query.slice(0, 2) },
-        { $set: setData, $setOnInsert: { createdAt: now } },
-        { upsert: true, new: true }
+        filter,
+        { $set: normalizedJob, $setOnInsert: { createdAt: now } },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
       );
       saved++;
     } catch (err) {
+      if (err.code === 11000) {
+        saved++;
+        continue;
+      }
       console.error(`[Aggregator] Upsert error for "${job.title}" @ ${job.company}: ${err.message}`);
     }
   }

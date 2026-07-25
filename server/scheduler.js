@@ -33,16 +33,6 @@ const startScheduler = () => {
     isRunning = false;
   });
 
-  // Separate high-frequency scrapers
-  cron.schedule('*/30 * * * *', async () => {
-    if (isRunning) return;
-    try {
-      await runScraper('JSearch');
-    } catch (err) {
-      console.error('JSearch extra scrape failed:', err.message);
-    }
-  });
-
   cron.schedule('*/30 * * * *', async () => {
     try {
       await checkAlerts();

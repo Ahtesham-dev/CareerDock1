@@ -133,6 +133,13 @@ Fields: userId, jobId, vote ('up'/'down'), reason, createdAt
 **Collection:** `jobalerts`
 Fields: userId, keywords (required), location, minSalary, employmentType, isActive (default true), lastCheckedAt, createdAt, updatedAt
 **Hook:** pre('save') sets updatedAt
+**Used by:** matching engine (`services/matching/runMatching.js`) — queries `{ isActive: true }` for alert matching
+
+### MatchLog (MatchLog.js — 12 lines)
+**Collection:** `matchlogs`
+Fields: userId (ref:User), jobId (ref:Job), alertId (ref:JobAlert), matchedAt, emailSentAt, emailStatus (pending/sent/failed)
+**Index:** `{ userId: 1, jobId: 1, alertId: 1 }` (unique) — prevents duplicate match notifications
+**Purpose:** Logs every job-alert match and tracks email delivery status
 
 ### Recommendation (Recommendation.js — 20 lines)
 **Collection:** `recommendations`
@@ -203,21 +210,23 @@ Fields: name (unique, lowercase), category, aliases[], demandCount, avgSalary, g
 ### Scheduler
 - `server/scheduler.js` — Starts initial scrapers 10s after boot
 - Cron jobs (via `node-cron`):
-  - `0 * * * *` — hourly: `runAllScrapers()`
-  - `*/30 * * * *` — every 30min: `runScraper('JSearch')`
+  - `0 * * * *` — hourly: `runAllScrapers()` (all scrapers, including JSearch)
+  - `*/30 * * * *` — every 30min: `checkAlerts()` (job alert matching via matching engine, `services/matching/pollNewJobs`)
   - `0 */6 * * *` — every 6h: `runDedupWorker()`
   - `0 */6 * * *` — every 6h: `runQualityWorker()`
   - `0 */12 * * *` — every 12h: `runRecommendationWorker()`
+- **Note:** JSearch 30-min extra scraper run removed (consolidated into hourly `runAllScrapers()`)
 
 ## 7. Known Issues
 
 1. **Admin middleware uses string comparison** — `ADMIN_USER_ID` is a single-user string; no role-based access control
-2. **JWT_SECRET must be set** — No fallback or error if missing; server would crash on login
+2. ~~**JWT_SECRET must be set** — No fallback or error if missing; server would crash on login~~ **FIXED** — Server now validates `JWT_SECRET` and `MONGO_URI` at startup, exits with `FATAL` message if missing
 3. **No MongoDB replica set** — No support for transactions; write operations are not atomic across collections
 4. **ScraperRun index** — Only `source+startedAt` combined index; queries filtered by status alone are unindexed
 5. **Recommendation TTL index** — Documents auto-delete 24h after `generatedAt`; no manual cache invalidation needed
 6. **Logger creates logs dir but no log rotation** — `error.log` grows unbounded
-7. **No rate limiting on auth routes** — Only auth.js has express-rate-limit (20/15min); other routes have none
+7. ~~**No rate limiting on auth routes** — Only auth.js has express-rate-limit (20/15min); other routes have none~~ **FIXED** — Global rate limiter (100 req/min per IP) added to all routes
+8. **MatchLog compound index** — `{ userId, jobId, alertId }` unique index prevents duplicate match notifications but requires all three fields to be present; missing fields would cause index key errors
 
 ## 8. Reverse Engineering Test: PASS
 ## 9. Second Engineer Review: PASS

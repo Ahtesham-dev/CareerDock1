@@ -11,7 +11,7 @@ The API Routes subsystem is the HTTP interface for CareerDock. It consists of 15
 | Prefix | File | Auth | Admin | Routes |
 |--------|------|------|-------|--------|
 | `/api/search` | search.js | No | No | GET /, GET /autocomplete, GET /correct, GET /suggest |
-| `/api/jobs` | jobs.js | No | No | GET /search, GET /, GET /:id, GET /sources/counts, POST / |
+| `/api/jobs` | jobs.js | POST only | POST admin | GET /search, GET /, GET /:id, GET /sources/counts, POST / |
 | `/api/insights` | insights.js | No | No | GET / |
 | `/api/scraper-runs` | scraperRuns.js | No | No | GET /, GET /latest |
 | `/api/intelligence` | intelligence.js | No | No | GET /salary, GET /skills, GET /locations, GET /hiring, GET /trends |
@@ -39,7 +39,7 @@ The API Routes subsystem is the HTTP interface for CareerDock. It consists of 15
 - `GET /api/jobs` — Basic query filter (q, skills, type, exp, sort, sources) + pagination + optional match-score sort
 - `GET /api/jobs/sources/counts` — Source distribution aggregation
 - `GET /api/jobs/:id` — Single job by ID
-- `POST /api/jobs` — Direct create (no auth — public)
+- `POST /api/jobs` — Create job (auth + admin required)
 
 ### insights.js (58 lines)
 - `GET /api/insights` — Aggregate: totalJobs, avgSalary, remote%, byPlatform, topSkills (12), byType, byExp, topLocations (6), salaryRange, appsByStatus
@@ -139,7 +139,7 @@ The API Routes subsystem is the HTTP interface for CareerDock. It consists of 15
 | /api/jobs/search | GET | No | q, page, limit | {jobs[], total, page, pages} |
 | /api/jobs/sources/counts | GET | No | — | {sources[{_id, count}], total} |
 | /api/jobs/:id | GET | No | — | Job document |
-| /api/jobs | POST | No | Job fields | Created Job |
+| /api/jobs | POST | Yes + Admin | Job fields | Created Job |
 | /api/insights | GET | No | — | Market-wide aggregations |
 | /api/scraper-runs | GET | No | source, page, limit | {runs[], total, page, pages} |
 | /api/scraper-runs/latest | GET | No | — | Latest run per source[] |
@@ -207,7 +207,7 @@ The API Routes subsystem is the HTTP interface for CareerDock. It consists of 15
 2. **LinkedIn sync 429 check** — Only checks for 'running' status; a stuck 'running' record blocks all future syncs forever
 3. **Profile `/jobs` scoring** — In profile.js:52, `includes` on `js.toLowerCase()` against `s.toLowerCase()` is a substring match, not exact skill match, causing false positives
 4. **Feedback stats `$match` inconsistency** — feedback.js:40 uses `req.userId?._id || req.userId` suggesting userId may sometimes be an object; only happens on `stats` endpoint
-5. **Jobs POST is public** — Anyone can create jobs without authentication
+5. ~~**Jobs POST is public** — Anyone can create jobs without authentication~~ **FIXED** — Now requires auth + admin
 6. **Recommendation model caching** — Recs cached in `Recommendation` model for 1h; only supports single "type: 'job'" cache per user
 7. **Recommendation `raw` param** — When `raw=true`, skips cache entirely
 8. **Dedup and quality worker routes** — Run workers inline in request cycle (may time out for large datasets)
