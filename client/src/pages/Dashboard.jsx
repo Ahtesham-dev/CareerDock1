@@ -114,13 +114,13 @@ export default function Dashboard({ activeSources = [] }) {
   }, [q]);
 
   useEffect(() => {
-    savedAPI.getSaved().then(res => setSavedIds(new Set(res.data.map(s => s.jobId)))).catch(() => {});
-    applicationsAPI.getApplications().then(res => setAppliedIds(new Set(res.data.map(a => a.jobId)))).catch(() => {});
+    savedAPI.getSaved().then(res => setSavedIds(new Set(res.data.map(s => s.jobId)))).catch(() => showToast('Failed to load saved jobs', 'error'));
+    applicationsAPI.getApplications().then(res => setAppliedIds(new Set(res.data.map(a => a.jobId)))).catch(() => showToast('Failed to load applications', 'error'));
     feedbackAPI.getHistory().then(res => {
       const map = {};
       res.data.forEach(f => { map[f.jobId?._id || f.jobId] = f.vote; });
       setFeedbackMap(map);
-    }).catch(() => {});
+    }).catch(() => showToast('Failed to load feedback', 'error'));
   }, []);
 
   const handleSave = async (job) => {

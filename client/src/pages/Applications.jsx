@@ -4,6 +4,7 @@ import TopNav from '../layout/TopNav';
 import Badge from '../components/ui/Badge';
 import { TableSkeleton } from '../components/ui/Skeleton';
 import { applicationsAPI } from '../api';
+import { useToast } from '../context/ToastContext';
 
 const statusColors = { Saved: 'gray', Applied: 'blue', Interview: 'amber', Offer: 'green', Rejected: 'red' };
 
@@ -11,6 +12,7 @@ export default function Applications() {
   const [apps, setApps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const { showToast } = useToast();
 
   useEffect(() => {
     applicationsAPI.getApplications()
@@ -20,10 +22,10 @@ export default function Applications() {
   }, []);
 
   const handleStatusChange = async (id, status) => {
-    try { await applicationsAPI.update(id, { status }); setApps(prev => prev.map(a => a._id === id ? { ...a, status } : a)); } catch {}
+    try { await applicationsAPI.update(id, { status }); setApps(prev => prev.map(a => a._id === id ? { ...a, status } : a)); } catch { showToast('Failed to update status', 'error'); }
   };
   const handleDelete = async (id) => {
-    try { await applicationsAPI.remove(id); setApps(prev => prev.filter(a => a._id !== id)); } catch {}
+    try { await applicationsAPI.remove(id); setApps(prev => prev.filter(a => a._id !== id)); } catch { showToast('Failed to delete', 'error'); }
   };
 
   return (

@@ -5,6 +5,7 @@ import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
 import { CardSkeleton } from '../components/ui/Skeleton';
 import { savedAPI } from '../api';
+import { useToast } from '../context/ToastContext';
 
 const columns = ['saved', 'applied', 'interview', 'rejected', 'offer'];
 const columnLabels = { saved: 'Saved', applied: 'Applied', interview: 'Interview', rejected: 'Rejected', offer: 'Offer' };
@@ -22,13 +23,14 @@ export default function SavedJobs() {
       .catch(() => setError('Failed to load saved jobs'))
       .finally(() => setLoading(false));
   };
+  const { showToast } = useToast();
   useEffect(() => { fetchSaved(); }, []);
 
   const handleMove = async (id, column) => {
-    try { await savedAPI.move(id, column); setSavedJobs(prev => prev.map(j => j._id === id ? { ...j, column } : j)); } catch {}
+    try { await savedAPI.move(id, column); setSavedJobs(prev => prev.map(j => j._id === id ? { ...j, column } : j)); } catch { showToast('Failed to move', 'error'); }
   };
   const handleDelete = async (id) => {
-    try { await savedAPI.remove(id); setSavedJobs(prev => prev.filter(j => j._id !== id)); } catch {}
+    try { await savedAPI.remove(id); setSavedJobs(prev => prev.filter(j => j._id !== id)); } catch { showToast('Failed to remove', 'error'); }
   };
   const getColumnJobs = (col) => savedJobs.filter(j => j.column === col);
 

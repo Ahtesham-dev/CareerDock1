@@ -3,12 +3,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useDrawer } from '../context/DrawerContext';
+import { useToast } from '../context/ToastContext';
 
 export default function TopNav({ title, subtitle, action }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
   const { user, displayName, logout } = useAuth();
   const { toggle } = useDrawer();
+  const { showToast } = useToast();
 
   useEffect(() => {
     const handleClick = () => setMenuOpen(false);
@@ -34,7 +36,7 @@ export default function TopNav({ title, subtitle, action }) {
         </div>
         <div className="flex items-center gap-2">
           {action}
-          <button className="btn-ghost p-2 relative" aria-label="Notifications">
+          <button onClick={() => showToast('Notifications coming soon', 'info')} className="btn-ghost p-2 relative" aria-label="Notifications">
             <i className="ti ti-bell text-lg" />
             <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-accent rounded-full ring-2 ring-surface-base" />
           </button>

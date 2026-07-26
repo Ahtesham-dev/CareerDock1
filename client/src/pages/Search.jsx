@@ -40,16 +40,16 @@ export default function Search() {
   };
 
   useEffect(() => {
-    const t = setTimeout(() => { if (query.trim().length >= 2) doSearch(1); }, 400);
+    const t = setTimeout(() => { if (query.trim().length >= 2 || hasSearched) doSearch(1); }, 400);
     return () => clearTimeout(t);
-  }, [query]);
+  }, [query, filterType, filterExp]);
 
   useEffect(() => {
     savedAPI.getSaved().then(res => {
       const map = {};
       res.data.forEach(s => { map[s.jobId?._id || s.jobId] = s._id; });
       setSavedMap(map);
-    }).catch(() => {});
+    }).catch(() => showToast('Failed to load saved jobs', 'error'));
   }, []);
 
   const handleSave = async (job) => {
