@@ -15,7 +15,7 @@ const sourceColors = { LinkedIn: 'blue', Naukri: 'red', JSearch: 'indigo', Inter
 const container = { show: { transition: { staggerChildren: 0.05 } } };
 const itemAnim = { show: { opacity: 1, y: 0 } };
 
-function JobCard({ job, savedIds, appliedIds, onSave, onApply, onFeedback }) {
+function JobCard({ job, savedIds, appliedIds, feedbackMap, onSave, onApply, onFeedback }) {
   return (
     <motion.div variants={itemAnim} className="card-premium-hover p-4 sm:p-5 space-y-3.5 group w-full min-w-0">
       <div className="flex items-start justify-between gap-3">
@@ -59,8 +59,8 @@ function JobCard({ job, savedIds, appliedIds, onSave, onApply, onFeedback }) {
           </a>
         )}
         <div className="flex gap-0.5 ml-auto sm:ml-0">
-          <button onClick={() => onFeedback(job._id, 'up')} className="btn-ghost p-1.5 text-xs text-text-muted hover:text-success"><i className="ti ti-thumb-up" /></button>
-          <button onClick={() => onFeedback(job._id, 'down')} className="btn-ghost p-1.5 text-xs text-text-muted hover:text-error"><i className="ti ti-thumb-down" /></button>
+          <button onClick={() => onFeedback(job._id, 'up')} className={`btn-ghost p-1.5 text-xs ${feedbackMap[job._id] === 'up' ? 'text-success' : 'text-text-muted hover:text-success'}`}><i className={`ti ${feedbackMap[job._id] === 'up' ? 'ti-thumb-up-filled' : 'ti-thumb-up'}`} /></button>
+          <button onClick={() => onFeedback(job._id, 'down')} className={`btn-ghost p-1.5 text-xs ${feedbackMap[job._id] === 'down' ? 'text-error' : 'text-text-muted hover:text-error'}`}><i className={`ti ${feedbackMap[job._id] === 'down' ? 'ti-thumb-down-filled' : 'ti-thumb-down'}`} /></button>
         </div>
       </div>
     </motion.div>
@@ -81,6 +81,7 @@ export default function Dashboard({ activeSources = [] }) {
   const [skillsOpen, setSkillsOpen] = useState(false);
   const [savedIds, setSavedIds] = useState(new Set());
   const [appliedIds, setAppliedIds] = useState(new Set());
+  const [feedbackMap, setFeedbackMap] = useState({});
   const { showToast } = useToast();
   const searchTimer = useRef(null);
 
@@ -115,6 +116,11 @@ export default function Dashboard({ activeSources = [] }) {
   useEffect(() => {
     savedAPI.getSaved().then(res => setSavedIds(new Set(res.data.map(s => s.jobId)))).catch(() => {});
     applicationsAPI.getApplications().then(res => setAppliedIds(new Set(res.data.map(a => a.jobId)))).catch(() => {});
+    feedbackAPI.getHistory().then(res => {
+      const map = {};
+      res.data.forEach(f => { map[f.jobId?._id || f.jobId] = f.vote; });
+      setFeedbackMap(map);
+    }).catch(() => {});
   }, []);
 
   const handleSave = async (job) => {
@@ -129,7 +135,7 @@ export default function Dashboard({ activeSources = [] }) {
     catch (err) { showToast(err.response?.status === 409 ? 'Already applied' : 'Failed to apply', 'warning'); }
   };
   const handleFeedback = async (jobId, vote) => {
-    try { await feedbackAPI.submit(jobId, vote, ''); showToast(vote === 'up' ? 'Upvoted!' : 'Downvoted', 'success'); }
+    try { await feedbackAPI.submit(jobId, vote, ''); setFeedbackMap(prev => ({ ...prev, [jobId]: vote })); showToast(vote === 'up' ? 'Upvoted!' : 'Downvoted', 'success'); }
     catch { showToast('Failed to submit feedback', 'error'); }
   };
 
@@ -189,7 +195,7 @@ export default function Dashboard({ activeSources = [] }) {
           </div>
         ) : (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-            {jobs.map(job => <JobCard key={job._id} job={job} savedIds={savedIds} appliedIds={appliedIds} onSave={handleSave} onApply={handleApply} onFeedback={handleFeedback} />)}
+            {jobs.map(job => <JobCard key={job._id} job={job} savedIds={savedIds} appliedIds={appliedIds} feedbackMap={feedbackMap} onSave={handleSave} onApply={handleApply} onFeedback={handleFeedback} />)}
           </motion.div>
         )}
 
