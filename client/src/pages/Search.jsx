@@ -21,6 +21,7 @@ export default function Search() {
   const [total, setTotal] = useState(0);
   const [filterType, setFilterType] = useState('');
   const [filterExp, setFilterExp] = useState('');
+  const [savedMap, setSavedMap] = useState({});
   const { showToast } = useToast();
 
   const doSearch = (p = 1) => {
@@ -43,8 +44,20 @@ export default function Search() {
     return () => clearTimeout(t);
   }, [query]);
 
+  useEffect(() => {
+    savedAPI.getSaved().then(res => {
+      const map = {};
+      res.data.forEach(s => { map[s.jobId?._id || s.jobId] = s._id; });
+      setSavedMap(map);
+    }).catch(() => {});
+  }, []);
+
   const handleSave = async (job) => {
-    try { await savedAPI.save({ jobId: job._id, title: job.title, company: job.company, source: job.source }); showToast('Saved!', 'success'); } catch { showToast('Failed to save', 'error'); }
+    if (savedMap[job._id]) {
+      try { await savedAPI.remove(savedMap[job._id]); setSavedMap(prev => { const n = { ...prev }; delete n[job._id]; return n; }); showToast('Removed', 'success'); } catch { showToast('Failed to remove', 'error'); }
+    } else {
+      try { const res = await savedAPI.save({ jobId: job._id, title: job.title, company: job.company, source: job.source }); setSavedMap(prev => ({ ...prev, [job._id]: res.data._id })); showToast('Saved!', 'success'); } catch { showToast('Failed to save', 'error'); }
+    }
   };
 
   const sourceColors = { LinkedIn: 'blue', Naukri: 'red', Internshala: 'green', JSearch: 'indigo', Wellfound: 'amber', GitHub: 'gray' };
@@ -106,7 +119,7 @@ export default function Search() {
                   {job.salaryLabel && <span className="text-success"><i className="ti ti-coin" />{job.salaryLabel}</span>}
                 </div>
                 <div className="flex items-center gap-2 pt-2 border-t border-white/[0.06]">
-                  <Button size="sm" variant="ghost" icon="bookmark" onClick={() => handleSave(job)}>Save</Button>
+                  {savedMap[job._id] ? <Button size="sm" variant="secondary" onClick={() => handleSave(job)}><i className="ti ti-bookmark-filled text-accent-light" /> Saved</Button> : <Button size="sm" variant="ghost" icon="bookmark" onClick={() => handleSave(job)}>Save</Button>}
                   <button onClick={() => window.open(job.externalUrl, '_blank')} className="btn-ghost p-1.5 text-text-muted hover:text-text-primary ml-auto"><i className="ti ti-external-link" /></button>
                 </div>
               </motion.div>
